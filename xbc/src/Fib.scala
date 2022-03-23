@@ -5,11 +5,13 @@ package xbc
 
 object Fib {
 
-  def fib(n: Long): Long = {
+  // Not quite the fib function, as here we +1 in the recursive case.
+  // This allows that the result of the function is equal to the number of function calls.
+  def nfib(n: Long): Long = {
     if (n < 2) {
       1
     } else {
-      fib(n - 1) + fib(n - 2)
+      nfib(n - 1) + nfib(n - 2) + 1
     }
   }
 

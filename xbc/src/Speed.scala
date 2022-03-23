@@ -11,7 +11,7 @@ object Speed extends App {
 
   while (true) {
     val start = System.currentTimeMillis()
-    val result = Fib.fib(n)
+    val result = Fib.nfib(n)
     val end = System.currentTimeMillis()
     val duration_ms = end - start
     val duration_s = duration_ms.toFloat / 1000.0
