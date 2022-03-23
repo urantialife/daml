@@ -7,11 +7,27 @@ object Speed extends App {
 
   println(s"Running...");
 
-  val n = 40L
+  val native = Fib.nfib(_)
+
+  val viaLang = (x: Long) => {
+    import Lang._
+    def program: Program = Examples.nfibProgram(x)
+    Interpret.standard(program)
+  }
+
+  val pickLangExample: Boolean = true //NICK, select on command line
+
+  val (n, functionUnderTest): (Long, Long => Long) = {
+    if (pickLangExample) {
+      (33L, viaLang)
+    } else {
+      (33L, native)
+    }
+  }
 
   while (true) {
     val start = System.currentTimeMillis()
-    val result = Fib.nfib(n)
+    val result = functionUnderTest(n)
     val end = System.currentTimeMillis()
     val duration_ms = end - start
     val duration_s = duration_ms.toFloat / 1000.0
