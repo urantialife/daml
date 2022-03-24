@@ -9,11 +9,11 @@ object Speed extends App {
   object Conf {
     final case class FixedN(group: String, version: String, n: Long) extends Conf
     final case class IncreasingN(group: String, version: String) extends Conf
+    final case class WholeGroup(group: String) extends Conf
   }
 
   def conf: Conf = {
     val defaultGroup: String = "nfib"
-    val defaultVersion: String = "native"
     def xv(v: String) = v match {
       case "n" => "native"
       case "i" => "interpreter"
@@ -21,9 +21,9 @@ object Speed extends App {
     }
     args.toList match {
       case Nil =>
-        Conf.IncreasingN(defaultGroup, defaultVersion)
+        Conf.WholeGroup(defaultGroup)
       case group :: Nil =>
-        Conf.IncreasingN(group, defaultVersion)
+        Conf.WholeGroup(group)
       case group :: version :: Nil =>
         Conf.IncreasingN(group, xv(version))
       case group :: version :: n :: Nil =>
@@ -56,6 +56,13 @@ object Speed extends App {
     ),
   )
 
+  def getVersions(group: String): List[String] = {
+    m.get(group) match {
+      case None => sys.error(s"\n**unknown group: $group")
+      case Some(g) => g.map(_._1)
+    }
+  }
+
   def getFUT(group: String, version: String): FUT = {
     m.get(group) match {
       case None => sys.error(s"\n**unknown group: $group")
@@ -85,6 +92,23 @@ object Speed extends App {
         printOutcomeLine(outcome)
         n += 1
       }
+
+    case Conf.WholeGroup(group) =>
+      printHeader()
+      getVersions(group).foreach { version =>
+        var n: Long = 20L
+        var more: Boolean = true
+        while (more) {
+          val setup = Setup(group, version, n)
+          val outcome = runTest(setup)
+          if (outcome.dur_s > 0.3) {
+            printOutcomeLine(outcome)
+            more = false
+          }
+          n += 1
+        }
+      }
+
   }
 
   case class Setup(group: String, version: String, n: Long)
