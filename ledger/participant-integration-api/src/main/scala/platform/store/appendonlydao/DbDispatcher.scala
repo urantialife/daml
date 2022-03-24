@@ -18,6 +18,7 @@ import java.util.concurrent.{Executor, Executors, TimeUnit}
 import javax.sql.DataSource
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Random
 import scala.util.control.NonFatal
 
 private[platform] trait DbDispatcher {
@@ -65,6 +66,9 @@ private[appendonlydao] final class DbDispatcherImpl private[appendonlydao] (
         } catch {
           case throwable: Throwable => handleError(throwable)
         } finally {
+          val elapsed = System.nanoTime() - startExec
+          val targetTime = Random.between(1000000, 2000000)
+          if (elapsed < targetTime) Thread.sleep(targetTime / 1000000L, targetTime % 1000000)
           updateMetrics(databaseMetrics, startExec)
         }
       }(executionContext)

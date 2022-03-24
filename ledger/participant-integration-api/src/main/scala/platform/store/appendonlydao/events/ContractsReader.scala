@@ -14,11 +14,9 @@ import com.daml.platform.store.backend.ContractStorageBackend
 import com.daml.platform.store.interfaces.LedgerDaoContractsReader
 import com.daml.platform.store.interfaces.LedgerDaoContractsReader._
 import com.daml.platform.store.serialization.{Compression, ValueSerializer}
-import com.daml.timer.Delayed
 
 import java.io.ByteArrayInputStream
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Random
 
 private[appendonlydao] sealed class ContractsReader(
     storageBackend: ContractStorageBackend,
@@ -49,19 +47,12 @@ private[appendonlydao] sealed class ContractsReader(
   ): Future[Option[ContractState]] = {
     implicit val errorLogger: ContextualizedErrorLogger =
       new DamlContextualizedErrorLogger(logger, loggingContext, None)
-    val start = System.nanoTime()
     Timed.future(
       metrics.daml.index.db.lookupActiveContract,
       dispatcher
         .executeSql(metrics.daml.index.db.lookupActiveContractDbMetrics)(
           storageBackend.contractState(contractId, before)
         )
-        .flatMap { res =>
-          val elapsed = (System.nanoTime() - start)
-          import scala.concurrent.duration._
-          val toSleep = Random.between(1200000L, 2000000L) - elapsed
-          Delayed.by(toSleep.nanos)(res)
-        }
         .map(_.map {
           case raw if raw.eventKind == 10 =>
             val contract = toContract(
