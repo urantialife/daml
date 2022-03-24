@@ -14,6 +14,9 @@ object Interpret {
   def standard(program: Program): Value = {
     program match {
       case Program(defs, main) =>
+        def nested_evalFrame = evalFrame _
+
+        @tailrec
         def evalFrame(actuals: Vector[Value], body: Exp): Value = {
 
           def eval(exp: Exp): Value =
@@ -29,11 +32,23 @@ object Interpret {
                   case None => sys.error(s"FnCall: $fnName")
                   case Some(body) =>
                     val vs = args.map(eval(_)).toVector
-                    evalFrame(vs, body)
+                    nested_evalFrame(vs, body)
                 }
             }
 
-          eval(body)
+          body match {
+            case IfNot0(e1, e2, e3) =>
+              if (eval(e1) != 0) evalFrame(actuals, e2) else evalFrame(actuals, e3)
+            case FnCall(fnName, args) =>
+              defs.get(fnName) match {
+                case None => sys.error(s"FnCall: $fnName")
+                case Some(body) =>
+                  val vs = args.map(eval(_)).toVector
+                  evalFrame(vs, body) //tailcall
+              }
+            case _ =>
+              eval(body)
+          }
         }
 
         evalFrame(Vector(), main)

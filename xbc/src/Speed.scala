@@ -79,8 +79,8 @@ object Speed extends App {
       "native" -> nfib_n,
     ),
     "trip" -> List(
-      //"interpreter" -> trip_i, //overflows stack from n=12
       "interpreter-cps" -> trip_ik,
+      "interpreter" -> trip_i,
       "native" -> trip_n,
     ),
   )
