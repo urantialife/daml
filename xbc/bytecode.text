@@ -1,6 +1,6 @@
 Classfile /home/nic/daml/tmp/xbc/Native$.class
   Last modified Jan 1, 2010; size 2372 bytes
-  MD5 checksum 10ba0d6d0a612f06d1a6ab81935a3f23
+  MD5 checksum b6a6c33c900045918297b05a977a8fb1
   Compiled from "Native.scala"
 public final class xbc.Native$
   minor version: 0
@@ -398,9 +398,9 @@ Constant pool:
     Code:
       stack=8, locals=7, args_size=4
          0: lload         5
-         2: lconst_0
+         2: lconst_1
          3: lcmp
-         4: ifne          11
+         4: ifge          11
          7: lload_3
          8: goto          26
         11: lload_1

@@ -46,25 +46,19 @@ object Speed extends App {
   val nfib_nk: FUT = Native.nfibStackSafe(_)
 
   val nfib_i: FUT = (x: Long) => {
-    import Lang._
-    def program: Program = Examples.nfibProgram(x)
-    Interpret.standard(program)
+    def prog = Lang.Examples.nfibProgram(x)
+    Interpret.standard(prog)
   }
 
-  val trip_n: FUT = {
-    def lpower(base: Long, exponent: Long): Long = {
-      if (exponent < 0) {
-        sys.error(s"\n**lpower, negative exponent: $exponent")
-      } else {
-        def powerLoop(i: Long): Long = if (i == 0) 1 else base * powerLoop(i - 1)
-        powerLoop(exponent)
-      }
-    }
-    def scalable_trip(n: Long): Long = {
-      val i = lpower(2, n)
-      Native.trip(i)
-    }
-    scalable_trip(_) / 3L
+  val trip_n: FUT = (x: Long) => {
+    val y = lpower(2, x) // make it scalable
+    Native.trip(y) / 3L
+  }
+
+  val trip_i: FUT = (x: Long) => {
+    val y = lpower(2, x)
+    def prog = Lang.Examples.tripProgram(y)
+    Interpret.standard(prog) / 3L
   }
 
   // map of groups of FUTs
@@ -75,6 +69,7 @@ object Speed extends App {
       "native" -> nfib_n,
     ),
     "trip" -> List(
+      //"interpreter" -> trip_i, //overflows stack from n=12
       "native" -> trip_n
     ),
   )
@@ -170,7 +165,7 @@ object Speed extends App {
     println(s"----------------------------------------------------------")
   }
 
-  def printOutcomeLine(outcome: Outcome, relative: Double) = {
+  def printOutcomeLine(outcome: Outcome, relative0: Double) = {
 
     def pad(s: String, max: Int): String = {
       val ss = s.size
@@ -180,16 +175,26 @@ object Speed extends App {
     }
 
     outcome match {
-      case Outcome(setup, res, dur_s, speed) =>
+      case Outcome(setup, res0, dur0, speed0) =>
         setup match {
-          case Setup(group, version, n) =>
-            println(
-              s"${pad(s"$n", 3)} ${pad(s"$res", 12)} ${pad(f"$dur_s%.2f", 6)} ${pad(
-                f"$speed%.2f",
-                9,
-              )} x${pad(f"$relative%.2f", 8)} $group-$version"
-            )
+          case Setup(group, version, n0) =>
+            val n = pad(s"$n0", 3)
+            val res = pad(s"$res0", 12)
+            val dur = pad(f"$dur0%.2f", 6)
+            val speed = pad(f"$speed0%.2f", 9)
+            val relative = pad(f"$relative0%.2f", 8)
+            val gv = s"$group-$version"
+            println(s"$n $res $dur $speed $relative $gv")
         }
+    }
+  }
+
+  def lpower(base: Long, exponent: Long): Long = {
+    if (exponent < 0) {
+      sys.error(s"\n**lpower, negative exponent: $exponent")
+    } else {
+      def powerLoop(i: Long): Long = if (i == 0) 1 else base * powerLoop(i - 1)
+      powerLoop(exponent)
     }
   }
 

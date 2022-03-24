@@ -47,7 +47,7 @@ object Native {
   }
 
   def tripLoop(step: Long, acc: Long, i: Long): Long = {
-    if (i == 0) acc
+    if (i < 1) acc
     else {
       tripLoop(step, acc + step, i - 1)
     }

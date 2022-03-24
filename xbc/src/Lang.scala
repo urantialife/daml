@@ -24,20 +24,33 @@ object Lang {
   object Examples {
 
     def nfibProgram(size: Long): Program = {
-      val nfib = "nfib"
+      def nfib(e: Exp) = FnCall("nfib", Vector(e))
       def body(n: Exp): Exp = {
         IfNot0(
           Less(n, Num(2)),
           Num(1),
-          Add(
-            Add(FnCall(nfib, Vector(Sub(n, Num(1)))), FnCall(nfib, Vector(Sub(n, Num(2))))),
-            Num(1),
-          ),
+          Add(Add(nfib(Sub(n, Num(1))), nfib(Sub(n, Num(2)))), Num(1)),
         )
       }
       Program(
-        defs = Map(nfib -> body(Arg(0))),
-        main = FnCall(nfib, Vector(Num(size))),
+        defs = Map("nfib" -> body(Arg(0))),
+        main = nfib(Num(size)),
+      )
+    }
+
+    def tripProgram(i: Long): Program = {
+      def loop(step: Exp, acc: Exp, i: Exp) = FnCall("loop", Vector(step, acc, i))
+      val body: Exp = {
+        val (step, acc, i) = (Arg(0), Arg(1), Arg(2))
+        IfNot0(
+          Less(i, Num(1)),
+          acc,
+          loop(step, Add(acc, step), Sub(i, Num(1))),
+        )
+      }
+      Program(
+        defs = Map("loop" -> body),
+        main = loop(Num(3L), Num(0L), Num(i)),
       )
     }
 
