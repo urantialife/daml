@@ -71,8 +71,8 @@ object Speed extends App {
   def m: Map[String, List[(String, FUT)]] = Map(
     "nfib" -> List(
       "interpreter" -> nfib_i,
-      "native" -> nfib_n,
       "native-cps" -> nfib_nk,
+      "native" -> nfib_n,
     ),
     "trip" -> List(
       "native" -> trip_n

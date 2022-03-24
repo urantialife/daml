@@ -14,8 +14,8 @@ object Lang {
   final case class Less(e1: Exp, e2: Exp) extends Exp
   final case class IfNot0(e1: Exp, e2: Exp, e3: Exp) extends Exp
 
-  final case object Arg1 extends Exp // support functions of 1 arg
-  final case class FnCall(f: FnName, arg: Exp) extends Exp
+  final case class Arg(i: Int) extends Exp
+  final case class FnCall(f: FnName, arg: Vector[Exp]) extends Exp
 
   case class Program(defs: Map[FnName, Exp], main: Exp)
 
@@ -29,12 +29,15 @@ object Lang {
         IfNot0(
           Less(n, Num(2)),
           Num(1),
-          Add(Add(FnCall(nfib, Sub(n, Num(1))), FnCall(nfib, Sub(n, Num(2)))), Num(1)),
+          Add(
+            Add(FnCall(nfib, Vector(Sub(n, Num(1)))), FnCall(nfib, Vector(Sub(n, Num(2))))),
+            Num(1),
+          ),
         )
       }
       Program(
-        defs = Map(nfib -> body(Arg1)),
-        main = FnCall(nfib, Num(size)),
+        defs = Map(nfib -> body(Arg(0))),
+        main = FnCall(nfib, Vector(Num(size))),
       )
     }
 
