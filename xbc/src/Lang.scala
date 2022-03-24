@@ -15,7 +15,7 @@ object Lang {
   final case class IfNot0(e1: Exp, e2: Exp, e3: Exp) extends Exp
 
   final case class Arg(i: Int) extends Exp
-  final case class FnCall(f: FnName, arg: Vector[Exp]) extends Exp
+  final case class FnCall(f: FnName, arg: List[Exp]) extends Exp
 
   case class Program(defs: Map[FnName, Exp], main: Exp)
 
@@ -24,7 +24,7 @@ object Lang {
   object Examples {
 
     def nfibProgram(size: Long): Program = {
-      def nfib(e: Exp) = FnCall("nfib", Vector(e))
+      def nfib(e: Exp) = FnCall("nfib", List(e))
       def body(n: Exp): Exp = {
         IfNot0(
           Less(n, Num(2)),
@@ -39,7 +39,7 @@ object Lang {
     }
 
     def tripProgram(i: Long): Program = {
-      def loop(step: Exp, acc: Exp, i: Exp) = FnCall("loop", Vector(step, acc, i))
+      def loop(step: Exp, acc: Exp, i: Exp) = FnCall("loop", List(step, acc, i))
       val body: Exp = {
         val (step, acc, i) = (Arg(0), Arg(1), Arg(2))
         IfNot0(

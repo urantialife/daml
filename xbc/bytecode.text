@@ -1,6 +1,6 @@
 Classfile /home/nic/daml/tmp/xbc/Native$.class
   Last modified Jan 1, 2010; size 2372 bytes
-  MD5 checksum b6a6c33c900045918297b05a977a8fb1
+  MD5 checksum 800e24267d3b8ae25e49914383f6233c
   Compiled from "Native.scala"
 public final class xbc.Native$
   minor version: 0
@@ -134,7 +134,7 @@ Constant pool:
          7: putstatic     #37                 // Field MODULE$:Lxbc/Native$;
         10: return
       LineNumberTable:
-        line 7: 0
+        line 9: 0
 
   public long nfibRecurive(long);
     descriptor: (J)J
@@ -166,9 +166,9 @@ Constant pool:
         frame_type = 82 /* same_locals_1_stack_item */
           stack = [ long ]
       LineNumberTable:
-        line 12: 0
-        line 13: 8
-        line 15: 12
+        line 14: 0
+        line 15: 8
+        line 17: 12
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0      32     0  this   Lxbc/Native$;
@@ -339,20 +339,20 @@ Constant pool:
           locals = [ class xbc/Native$, class xbc/Native$Trav, class xbc/Native$K, top, long, long, class xbc/Native$Trav, top, top, top, class xbc/Native$Up, long, class xbc/Native$K ]
           stack = []
       LineNumberTable:
-        line 29: 0
-        line 30: 3
-        line 31: 25
-        line 32: 34
-        line 34: 48
-        line 30: 74
-        line 36: 77
-        line 37: 99
-        line 38: 102
-        line 39: 123
-        line 40: 184
-        line 37: 237
-        line 36: 254
-        line 29: 257
+        line 32: 0
+        line 33: 3
+        line 34: 25
+        line 35: 34
+        line 37: 48
+        line 33: 74
+        line 39: 77
+        line 40: 99
+        line 41: 102
+        line 42: 123
+        line 43: 184
+        line 40: 237
+        line 39: 254
+        line 32: 257
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
            25      49    10     n   J
@@ -383,7 +383,7 @@ Constant pool:
         12: invokevirtual #90                 // Method nfibLoop:(Lxbc/Native$Trav;Lxbc/Native$K;)J
         15: lreturn
       LineNumberTable:
-        line 46: 0
+        line 49: 0
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0      16     0  this   Lxbc/Native$;
@@ -421,8 +421,8 @@ Constant pool:
         frame_type = 78 /* same_locals_1_stack_item */
           stack = [ long ]
       LineNumberTable:
-        line 50: 0
-        line 52: 11
+        line 54: 0
+        line 56: 11
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0      27     0  this   Lxbc/Native$;
@@ -449,8 +449,8 @@ Constant pool:
          8: invokevirtual #100                // Method tripLoop:(JJJ)J
         11: lreturn
       LineNumberTable:
-        line 58: 0
-        line 59: 4
+        line 62: 0
+        line 63: 4
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             4       7     3  step   J
@@ -469,7 +469,7 @@ Constant pool:
          1: invokespecial #101                // Method java/lang/Object."<init>":()V
          4: return
       LineNumberTable:
-        line 7: 0
+        line 9: 0
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0       5     0  this   Lxbc/Native$;

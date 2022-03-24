@@ -18,6 +18,7 @@ object Speed extends App {
       case "n" => "native"
       case "nk" => "native-cps"
       case "i" => "interpreter"
+      case "ik" => "interpreter-cps"
       case s => s
     }
     args.toList match {
@@ -50,6 +51,11 @@ object Speed extends App {
     Interpret.standard(prog)
   }
 
+  val nfib_ik: FUT = (x: Long) => {
+    def prog = Lang.Examples.nfibProgram(x)
+    Interpret.cps(prog)
+  }
+
   val trip_n: FUT = (x: Long) => {
     val y = lpower(2, x) // make it scalable
     Native.trip(y) / 3L
@@ -61,16 +67,24 @@ object Speed extends App {
     Interpret.standard(prog) / 3L
   }
 
+  val trip_ik: FUT = (x: Long) => {
+    val y = lpower(2, x)
+    def prog = Lang.Examples.tripProgram(y)
+    Interpret.cps(prog) / 3L
+  }
+
   // map of groups of FUTs
   def m: Map[String, List[(String, FUT)]] = Map(
     "nfib" -> List(
+      "interpreter-cps" -> nfib_ik,
       "interpreter" -> nfib_i,
       "native-cps" -> nfib_nk,
       "native" -> nfib_n,
     ),
     "trip" -> List(
       //"interpreter" -> trip_i, //overflows stack from n=12
-      "native" -> trip_n
+      "interpreter-cps" -> trip_ik,
+      "native" -> trip_n,
     ),
   )
 
@@ -103,7 +117,7 @@ object Speed extends App {
 
     case Conf.IncreasingN(group, version) =>
       printHeader()
-      var n: Long = 27L
+      var n: Long = 15L
       while (true) {
         val setup = Setup(group, version, n)
         val outcome = runTest(setup)
@@ -182,7 +196,7 @@ object Speed extends App {
             val res = pad(s"$res0", 12)
             val dur = pad(f"$dur0%.2f", 6)
             val speed = pad(f"$speed0%.2f", 9)
-            val relative = pad(f"$relative0%.2f", 8)
+            val relative = pad(f"$relative0%.2f", 9)
             val gv = s"$group-$version"
             println(s"$n $res $dur $speed $relative $gv")
         }

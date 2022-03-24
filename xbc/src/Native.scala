@@ -3,6 +3,8 @@
 
 package xbc
 
+import scala.annotation.tailrec
+
 // Examples writen natively in scala
 object Native {
 
@@ -16,7 +18,7 @@ object Native {
     }
   }
 
-  abstract trait Trav
+  abstract trait Trav //NICK: sealed makes this better??
   case class Down(n: Long) extends Trav
   case class Up(res: Long) extends Trav
 
@@ -25,6 +27,7 @@ object Native {
   case class KLeft(n: Long, k: K) extends K
   case class KRight(v: Long, k: K) extends K
 
+  @tailrec
   def nfibLoop(trav: Trav, k: K): Long = {
     trav match {
       case Down(n) =>
@@ -46,6 +49,7 @@ object Native {
     nfibLoop(Down(n), KRet)
   }
 
+  @tailrec
   def tripLoop(step: Long, acc: Long, i: Long): Long = {
     if (i < 1) acc
     else {
