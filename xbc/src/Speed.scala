@@ -37,13 +37,33 @@ object Speed extends App {
 
   type FUT = (Long => Long) // function under test
 
+  // Examples should be scalable:
+  // - the computational effort should scale exponentially with the input N
+  // - the result should be indicative of the computation effort
+
   val nfib_n: FUT = Native.nfib(_)
+
   val nfib_i: FUT = (x: Long) => {
     import Lang._
     def program: Program = Examples.nfibProgram(x)
     Interpret.standard(program)
   }
-  val trix_n: FUT = Native.trix(_)
+
+  val trip_n: FUT = {
+    def lpower(base: Long, exponent: Long): Long = {
+      if (exponent < 0) {
+        sys.error(s"\n**lpower, negative exponent: $exponent")
+      } else {
+        def powerLoop(i: Long): Long = if (i == 0) 1 else base * powerLoop(i - 1)
+        powerLoop(exponent)
+      }
+    }
+    def scalable_trip(n: Long): Long = {
+      val i = lpower(2, n)
+      Native.trip(i)
+    }
+    scalable_trip(_) / 3L
+  }
 
   // map of groups of FUTs
   def m: Map[String, List[(String, FUT)]] = Map(
@@ -51,8 +71,8 @@ object Speed extends App {
       "native" -> nfib_n,
       "interpreter" -> nfib_i,
     ),
-    "trix" -> List(
-      "native" -> trix_n
+    "trip" -> List(
+      "native" -> trip_n
     ),
   )
 

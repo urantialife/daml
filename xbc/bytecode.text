@@ -1,6 +1,6 @@
 Classfile /home/nic/daml/tmp/xbc/Native$.class
-  Last modified Jan 1, 2010; size 1665 bytes
-  MD5 checksum f7e3ab9f34531c3b4d4be0f1259d234f
+  Last modified Jan 1, 2010; size 927 bytes
+  MD5 checksum 5b7aac3a0980f843de979ae3f22104a0
   Compiled from "Native.scala"
 public final class xbc.Native$
   minor version: 0
@@ -8,7 +8,7 @@ public final class xbc.Native$
   flags: (0x0031) ACC_PUBLIC, ACC_FINAL, ACC_SUPER
   this_class: #2                          // xbc/Native$
   super_class: #4                         // java/lang/Object
-  interfaces: 0, fields: 1, methods: 7, attributes: 3
+  interfaces: 0, fields: 1, methods: 5, attributes: 3
 Constant pool:
    #1 = Utf8               xbc/Native$
    #2 = Class              #1             // xbc/Native$
@@ -32,62 +32,24 @@ Constant pool:
   #21 = Methodref          #2.#20         // xbc/Native$.nfib:(J)J
   #22 = Utf8               this
   #23 = Utf8               J
-  #24 = Utf8               trix
-  #25 = Long               3l
-  #27 = Utf8               lpower
-  #28 = Utf8               (JJ)J
-  #29 = NameAndType        #27:#28        // lpower:(JJ)J
-  #30 = Methodref          #2.#29         // xbc/Native$.lpower:(JJ)J
-  #31 = Utf8               trixLoop$1
-  #32 = Utf8               (JJJ)J
-  #33 = NameAndType        #31:#32        // trixLoop$1:(JJJ)J
-  #34 = Methodref          #2.#33         // xbc/Native$.trixLoop$1:(JJJ)J
-  #35 = Utf8               step
-  #36 = Utf8               i
-  #37 = Utf8               base
-  #38 = Utf8               exponent
-  #39 = Utf8               scala/sys/package$
-  #40 = Class              #39            // scala/sys/package$
-  #41 = Utf8               Lscala/sys/package$;
-  #42 = NameAndType        #6:#41         // MODULE$:Lscala/sys/package$;
-  #43 = Fieldref           #40.#42        // scala/sys/package$.MODULE$:Lscala/sys/package$;
-  #44 = Utf8               java/lang/StringBuilder
-  #45 = Class              #44            // java/lang/StringBuilder
-  #46 = Integer            30
-  #47 = Utf8               (I)V
-  #48 = NameAndType        #10:#47        // "<init>":(I)V
-  #49 = Methodref          #45.#48        // java/lang/StringBuilder."<init>":(I)V
-  #50 = Utf8               \n**lpower, negative exponent:
-  #51 = String             #50            // \n**lpower, negative exponent:
-  #52 = Utf8               append
-  #53 = Utf8               (Ljava/lang/String;)Ljava/lang/StringBuilder;
-  #54 = NameAndType        #52:#53        // append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
-  #55 = Methodref          #45.#54        // java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
-  #56 = Utf8               (J)Ljava/lang/StringBuilder;
-  #57 = NameAndType        #52:#56        // append:(J)Ljava/lang/StringBuilder;
-  #58 = Methodref          #45.#57        // java/lang/StringBuilder.append:(J)Ljava/lang/StringBuilder;
-  #59 = Utf8               toString
-  #60 = Utf8               ()Ljava/lang/String;
-  #61 = NameAndType        #59:#60        // toString:()Ljava/lang/String;
-  #62 = Methodref          #45.#61        // java/lang/StringBuilder.toString:()Ljava/lang/String;
-  #63 = Utf8               error
-  #64 = Utf8               (Ljava/lang/String;)Lscala/runtime/Nothing$;
-  #65 = NameAndType        #63:#64        // error:(Ljava/lang/String;)Lscala/runtime/Nothing$;
-  #66 = Methodref          #40.#65        // scala/sys/package$.error:(Ljava/lang/String;)Lscala/runtime/Nothing$;
-  #67 = Utf8               powerLoop$1
-  #68 = NameAndType        #67:#28        // powerLoop$1:(JJ)J
-  #69 = Methodref          #2.#68         // xbc/Native$.powerLoop$1:(JJ)J
-  #70 = Utf8               acc
-  #71 = Utf8               base$1
-  #72 = Methodref          #4.#11         // java/lang/Object."<init>":()V
-  #73 = Utf8               Code
-  #74 = Utf8               LineNumberTable
-  #75 = Utf8               StackMapTable
-  #76 = Utf8               LocalVariableTable
-  #77 = Utf8               MethodParameters
-  #78 = Utf8               SourceFile
-  #79 = Utf8               ScalaInlineInfo
-  #80 = Utf8               Scala
+  #24 = Utf8               tripLoop
+  #25 = Utf8               (JJJ)J
+  #26 = Utf8               step
+  #27 = Utf8               acc
+  #28 = Utf8               i
+  #29 = Utf8               trip
+  #30 = Long               3l
+  #32 = NameAndType        #24:#25        // tripLoop:(JJJ)J
+  #33 = Methodref          #2.#32         // xbc/Native$.tripLoop:(JJJ)J
+  #34 = Methodref          #4.#11         // java/lang/Object."<init>":()V
+  #35 = Utf8               Code
+  #36 = Utf8               LineNumberTable
+  #37 = Utf8               StackMapTable
+  #38 = Utf8               LocalVariableTable
+  #39 = Utf8               MethodParameters
+  #40 = Utf8               SourceFile
+  #41 = Utf8               ScalaInlineInfo
+  #42 = Utf8               Scala
 {
   public static final xbc.Native$ MODULE$;
     descriptor: Lxbc/Native$;
@@ -136,9 +98,9 @@ Constant pool:
         frame_type = 82 /* same_locals_1_stack_item */
           stack = [ long ]
       LineNumberTable:
-        line 16: 0
-        line 17: 8
-        line 19: 12
+        line 12: 0
+        line 13: 8
+        line 15: 12
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0      32     0  this   Lxbc/Native$;
@@ -147,84 +109,9 @@ Constant pool:
       Name                           Flags
       n                              final
 
-  public long trix(long);
-    descriptor: (J)J
-    flags: (0x0001) ACC_PUBLIC
-    Code:
-      stack=7, locals=7, args_size=2
-         0: ldc2_w        #25                 // long 3l
-         3: lstore_3
-         4: aload_0
-         5: ldc2_w        #18                 // long 2l
-         8: lload_1
-         9: invokevirtual #30                 // Method lpower:(JJ)J
-        12: lstore        5
-        14: aload_0
-        15: lload_3
-        16: lconst_0
-        17: lload         5
-        19: invokespecial #34                 // Method trixLoop$1:(JJJ)J
-        22: lload_3
-        23: ldiv
-        24: lreturn
-      LineNumberTable:
-        line 31: 0
-        line 32: 4
-        line 33: 14
-      LocalVariableTable:
-        Start  Length  Slot  Name   Signature
-            4      20     3  step   J
-           14      10     5     i   J
-            0      25     0  this   Lxbc/Native$;
-            0      25     1     n   J
-    MethodParameters:
-      Name                           Flags
-      n                              final
-
-  public long lpower(long, long);
-    descriptor: (JJ)J
-    flags: (0x0001) ACC_PUBLIC
-    Code:
-      stack=4, locals=5, args_size=3
-         0: lload_3
-         1: lconst_0
-         2: lcmp
-         3: ifge          34
-         6: getstatic     #43                 // Field scala/sys/package$.MODULE$:Lscala/sys/package$;
-         9: new           #45                 // class java/lang/StringBuilder
-        12: dup
-        13: ldc           #46                 // int 30
-        15: invokespecial #49                 // Method java/lang/StringBuilder."<init>":(I)V
-        18: ldc           #51                 // String \n**lpower, negative exponent:
-        20: invokevirtual #55                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
-        23: lload_3
-        24: invokevirtual #58                 // Method java/lang/StringBuilder.append:(J)Ljava/lang/StringBuilder;
-        27: invokevirtual #62                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
-        30: invokevirtual #66                 // Method scala/sys/package$.error:(Ljava/lang/String;)Lscala/runtime/Nothing$;
-        33: athrow
-        34: lload_3
-        35: lload_1
-        36: invokestatic  #69                 // Method powerLoop$1:(JJ)J
-        39: lreturn
-      StackMapTable: number_of_entries = 1
-        frame_type = 34 /* same */
-      LineNumberTable:
-        line 38: 0
-        line 39: 6
-        line 42: 34
-      LocalVariableTable:
-        Start  Length  Slot  Name   Signature
-            0      40     0  this   Lxbc/Native$;
-            0      40     1  base   J
-            0      40     3 exponent   J
-    MethodParameters:
-      Name                           Flags
-      base                           final
-      exponent                       final
-
-  private final long trixLoop$1(long, long, long);
+  public long tripLoop(long, long, long);
     descriptor: (JJJ)J
-    flags: (0x0012) ACC_PRIVATE, ACC_FINAL
+    flags: (0x0001) ACC_PUBLIC
     Code:
       stack=8, locals=7, args_size=4
          0: lload         5
@@ -251,8 +138,8 @@ Constant pool:
         frame_type = 78 /* same_locals_1_stack_item */
           stack = [ long ]
       LineNumberTable:
-        line 26: 0
-        line 28: 11
+        line 20: 0
+        line 22: 11
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0      27     0  this   Lxbc/Native$;
@@ -265,39 +152,30 @@ Constant pool:
       acc                            final
       i                              final
 
-  private static final long powerLoop$1(long, long);
-    descriptor: (JJ)J
-    flags: (0x001a) ACC_PRIVATE, ACC_STATIC, ACC_FINAL
+  public long trip(long);
+    descriptor: (J)J
+    flags: (0x0001) ACC_PUBLIC
     Code:
-      stack=6, locals=4, args_size=2
-         0: lload_0
-         1: lconst_0
-         2: lcmp
-         3: ifne          10
-         6: lconst_1
-         7: goto          19
-        10: lload_2
-        11: lload_0
-        12: lconst_1
-        13: lsub
-        14: lload_2
-        15: invokestatic  #69                 // Method powerLoop$1:(JJ)J
-        18: lmul
-        19: lreturn
-      StackMapTable: number_of_entries = 2
-        frame_type = 10 /* same */
-        frame_type = 72 /* same_locals_1_stack_item */
-          stack = [ long ]
+      stack=7, locals=5, args_size=2
+         0: ldc2_w        #30                 // long 3l
+         3: lstore_3
+         4: aload_0
+         5: lload_3
+         6: lconst_0
+         7: lload_1
+         8: invokevirtual #33                 // Method tripLoop:(JJJ)J
+        11: lreturn
       LineNumberTable:
-        line 41: 0
+        line 28: 0
+        line 29: 4
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0      20     0     i   J
-            0      20     2 base$1   J
+            4       7     3  step   J
+            0      12     0  this   Lxbc/Native$;
+            0      12     1     i   J
     MethodParameters:
       Name                           Flags
       i                              final
-      base$1                         final
 
   private xbc.Native$();
     descriptor: ()V
@@ -305,7 +183,7 @@ Constant pool:
     Code:
       stack=1, locals=1, args_size=1
          0: aload_0
-         1: invokespecial #72                 // Method java/lang/Object."<init>":()V
+         1: invokespecial #34                 // Method java/lang/Object."<init>":()V
          4: return
       LineNumberTable:
         line 7: 0
@@ -314,116 +192,8 @@ Constant pool:
             0       5     0  this   Lxbc/Native$;
 }
 SourceFile: "Native.scala"
-  ScalaInlineInfo: length = 0x22 (unknown attribute)
-   01 01 00 06 00 0A 00 09 01 00 1B 00 1C 01 00 0F
-   00 10 01 00 43 00 1C 01 00 18 00 10 01 00 1F 00
-   20 01
+  ScalaInlineInfo: length = 0x18 (unknown attribute)
+   01 01 00 04 00 0A 00 09 01 00 0F 00 10 01 00 1D
+   00 10 01 00 18 00 19 01
   Scala: length = 0x0 (unknown attribute)
 
-Classfile /home/nic/daml/tmp/xbc/Native.class
-  Last modified Jan 1, 2010; size 852 bytes
-  MD5 checksum 2648dc2728c08afa61c01a97e8b2ddbe
-  Compiled from "Native.scala"
-public final class xbc.Native
-  minor version: 0
-  major version: 52
-  flags: (0x0031) ACC_PUBLIC, ACC_FINAL, ACC_SUPER
-  this_class: #2                          // xbc/Native
-  super_class: #4                         // java/lang/Object
-  interfaces: 0, fields: 0, methods: 3, attributes: 3
-Constant pool:
-   #1 = Utf8               xbc/Native
-   #2 = Class              #1             // xbc/Native
-   #3 = Utf8               java/lang/Object
-   #4 = Class              #3             // java/lang/Object
-   #5 = Utf8               Native.scala
-   #6 = Utf8               Lscala/reflect/ScalaSignature;
-   #7 = Utf8               bytes
-   #8 = Utf8               \u0006\u0005\u0019:QAB\u0004\t\u0002)1Q\u0001D\u0004\t\u00025AQ\u0001F\u0001\u0005\u0002UAQAF\u0001\u0005\u0002]AQ!H\u0001\u0005\u0002yAQ\u0001I\u0001\u0005\u0002\u0005\naAT1uSZ,\'\"\u0001\u0005\u0002\u0007a\u00147m\u0001\u0001\u0011\u0005-\tQ\"A\u0004\u0003\r9\u000bG/\u001b<f\'\t\ta\u0002\u0005\u0002\u0010%5\t\u0001CC\u0001\u0012\u0003\u0015\u00198-\u00197b\u0013\t\u0019\u0002C\u0001\u0004B]f\u0014VMZ\u0001\u0007y%t\u0017\u000e\u001e \u0015\u0003)\tAA\u001c4jER\u0011\u0001d\u0007\t\u0003\u001feI!A\u0007\t\u0003\t1{gn\u001a\u0005\u00069\r\u0001\r\u0001G\u0001\u0002]\u0006!AO]5y)\tAr\u0004C\u0003\u001d\t\u0001\u0007\u0001$\u0001\u0004ma><XM\u001d\u000b\u00041\t\"\u0003\"B\u0012\u0006\u0001\u0004A\u0012\u0001\u00022bg\u0016DQ!J\u0003A\u0002a\t\u0001\"\u001a=q_:,g\u000e\u001e
-   #9 = Utf8               lpower
-  #10 = Utf8               (JJ)J
-  #11 = Utf8               base
-  #12 = Utf8               exponent
-  #13 = Utf8               xbc/Native$
-  #14 = Class              #13            // xbc/Native$
-  #15 = Utf8               MODULE$
-  #16 = Utf8               Lxbc/Native$;
-  #17 = NameAndType        #15:#16        // MODULE$:Lxbc/Native$;
-  #18 = Fieldref           #14.#17        // xbc/Native$.MODULE$:Lxbc/Native$;
-  #19 = NameAndType        #9:#10         // lpower:(JJ)J
-  #20 = Methodref          #14.#19        // xbc/Native$.lpower:(JJ)J
-  #21 = Utf8               J
-  #22 = Utf8               trix
-  #23 = Utf8               (J)J
-  #24 = Utf8               n
-  #25 = NameAndType        #22:#23        // trix:(J)J
-  #26 = Methodref          #14.#25        // xbc/Native$.trix:(J)J
-  #27 = Utf8               nfib
-  #28 = NameAndType        #27:#23        // nfib:(J)J
-  #29 = Methodref          #14.#28        // xbc/Native$.nfib:(J)J
-  #30 = Utf8               Code
-  #31 = Utf8               LocalVariableTable
-  #32 = Utf8               MethodParameters
-  #33 = Utf8               SourceFile
-  #34 = Utf8               RuntimeVisibleAnnotations
-  #35 = Utf8               ScalaSig
-{
-  public static long lpower(long, long);
-    descriptor: (JJ)J
-    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
-    Code:
-      stack=5, locals=4, args_size=2
-         0: getstatic     #18                 // Field xbc/Native$.MODULE$:Lxbc/Native$;
-         3: lload_0
-         4: lload_2
-         5: invokevirtual #20                 // Method xbc/Native$.lpower:(JJ)J
-         8: lreturn
-      LocalVariableTable:
-        Start  Length  Slot  Name   Signature
-            0       9     0  base   J
-            0       9     2 exponent   J
-    MethodParameters:
-      Name                           Flags
-      base                           final
-      exponent                       final
-
-  public static long trix(long);
-    descriptor: (J)J
-    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
-    Code:
-      stack=3, locals=2, args_size=1
-         0: getstatic     #18                 // Field xbc/Native$.MODULE$:Lxbc/Native$;
-         3: lload_0
-         4: invokevirtual #26                 // Method xbc/Native$.trix:(J)J
-         7: lreturn
-      LocalVariableTable:
-        Start  Length  Slot  Name   Signature
-            0       8     0     n   J
-    MethodParameters:
-      Name                           Flags
-      n                              final
-
-  public static long nfib(long);
-    descriptor: (J)J
-    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
-    Code:
-      stack=3, locals=2, args_size=1
-         0: getstatic     #18                 // Field xbc/Native$.MODULE$:Lxbc/Native$;
-         3: lload_0
-         4: invokevirtual #29                 // Method xbc/Native$.nfib:(J)J
-         7: lreturn
-      LocalVariableTable:
-        Start  Length  Slot  Name   Signature
-            0       8     0     n   J
-    MethodParameters:
-      Name                           Flags
-      n                              final
-}
-SourceFile: "Native.scala"
-RuntimeVisibleAnnotations:
-  0: #6(#7=s#8)
-    scala.reflect.ScalaSignature(
-      bytes="\u0006\u0005\u0019:QAB\u0004\t\u0002)1Q\u0001D\u0004\t\u00025AQ\u0001F\u0001\u0005\u0002UAQAF\u0001\u0005\u0002]AQ!H\u0001\u0005\u0002yAQ\u0001I\u0001\u0005\u0002\u0005\naAT1uSZ,\'\"\u0001\u0005\u0002\u0007a\u00147m\u0001\u0001\u0011\u0005-\tQ\"A\u0004\u0003\r9\u000bG/\u001b<f\'\t\ta\u0002\u0005\u0002\u0010%5\t\u0001CC\u0001\u0012\u0003\u0015\u00198-\u00197b\u0013\t\u0019\u0002C\u0001\u0004B]f\u0014VMZ\u0001\u0007y%t\u0017\u000e\u001e \u0015\u0003)\tAA\u001c4jER\u0011\u0001d\u0007\t\u0003\u001feI!A\u0007\t\u0003\t1{gn\u001a\u0005\u00069\r\u0001\r\u0001G\u0001\u0002]\u0006!AO]5y)\tAr\u0004C\u0003\u001d\t\u0001\u0007\u0001$\u0001\u0004ma><XM\u001d\u000b\u00041\t\"\u0003\"B\u0012\u0006\u0001\u0004A\u0012\u0001\u00022bg\u0016DQ!J\u0003A\u0002a\t\u0001\"\u001a=q_:,g\u000e\u001e"
-    )
-  ScalaSig: length = 0x3 (unknown attribute)
-   05 02 00
