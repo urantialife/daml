@@ -1,6 +1,6 @@
 Classfile /home/nic/daml/tmp/xbc/Native$.class
   Last modified Jan 1, 2010; size 2372 bytes
-  MD5 checksum 3acd74da6c6f61230d5d89f81a12e6bb
+  MD5 checksum 10ba0d6d0a612f06d1a6ab81935a3f23
   Compiled from "Native.scala"
 public final class xbc.Native$
   minor version: 0
@@ -339,20 +339,20 @@ Constant pool:
           locals = [ class xbc/Native$, class xbc/Native$Trav, class xbc/Native$K, top, long, long, class xbc/Native$Trav, top, top, top, class xbc/Native$Up, long, class xbc/Native$K ]
           stack = []
       LineNumberTable:
-        line 49: 0
-        line 50: 3
-        line 51: 25
-        line 52: 34
-        line 54: 48
-        line 50: 74
-        line 56: 77
-        line 57: 99
-        line 58: 102
-        line 59: 123
-        line 60: 184
-        line 57: 237
-        line 56: 254
-        line 49: 257
+        line 29: 0
+        line 30: 3
+        line 31: 25
+        line 32: 34
+        line 34: 48
+        line 30: 74
+        line 36: 77
+        line 37: 99
+        line 38: 102
+        line 39: 123
+        line 40: 184
+        line 37: 237
+        line 36: 254
+        line 29: 257
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
            25      49    10     n   J
@@ -383,7 +383,7 @@ Constant pool:
         12: invokevirtual #90                 // Method nfibLoop:(Lxbc/Native$Trav;Lxbc/Native$K;)J
         15: lreturn
       LineNumberTable:
-        line 66: 0
+        line 46: 0
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0      16     0  this   Lxbc/Native$;
@@ -421,8 +421,8 @@ Constant pool:
         frame_type = 78 /* same_locals_1_stack_item */
           stack = [ long ]
       LineNumberTable:
-        line 72: 0
-        line 74: 11
+        line 50: 0
+        line 52: 11
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0      27     0  this   Lxbc/Native$;
@@ -449,8 +449,8 @@ Constant pool:
          8: invokevirtual #100                // Method tripLoop:(JJJ)J
         11: lreturn
       LineNumberTable:
-        line 80: 0
-        line 81: 4
+        line 58: 0
+        line 59: 4
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             4       7     3  step   J
