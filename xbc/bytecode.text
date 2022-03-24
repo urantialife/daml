@@ -1,6 +1,6 @@
 Classfile /home/nic/daml/tmp/xbc/Native$.class
-  Last modified Jan 1, 2010; size 2374 bytes
-  MD5 checksum eafab23cef9adb9b76ac4b99a7e67e0f
+  Last modified Jan 1, 2010; size 935 bytes
+  MD5 checksum 82cec9d5f5b68710c84b9faecbe47bb4
   Compiled from "Native.scala"
 public final class xbc.Native$
   minor version: 0
@@ -8,116 +8,48 @@ public final class xbc.Native$
   flags: (0x0031) ACC_PUBLIC, ACC_FINAL, ACC_SUPER
   this_class: #2                          // xbc/Native$
   super_class: #4                         // java/lang/Object
-  interfaces: 0, fields: 1, methods: 7, attributes: 4
+  interfaces: 0, fields: 1, methods: 5, attributes: 3
 Constant pool:
-    #1 = Utf8               xbc/Native$
-    #2 = Class              #1            // xbc/Native$
-    #3 = Utf8               java/lang/Object
-    #4 = Class              #3            // java/lang/Object
-    #5 = Utf8               Native.scala
-    #6 = Utf8               xbc/Native$Down
-    #7 = Class              #6            // xbc/Native$Down
-    #8 = Utf8               xbc/Native
-    #9 = Class              #8            // xbc/Native
-   #10 = Utf8               Down
-   #11 = Utf8               xbc/Native$K
-   #12 = Class              #11           // xbc/Native$K
-   #13 = Utf8               K
-   #14 = Utf8               xbc/Native$KLeft
-   #15 = Class              #14           // xbc/Native$KLeft
-   #16 = Utf8               KLeft
-   #17 = Utf8               xbc/Native$KRet$
-   #18 = Class              #17           // xbc/Native$KRet$
-   #19 = Utf8               KRet$
-   #20 = Utf8               xbc/Native$KRight
-   #21 = Class              #20           // xbc/Native$KRight
-   #22 = Utf8               KRight
-   #23 = Utf8               xbc/Native$Trav
-   #24 = Class              #23           // xbc/Native$Trav
-   #25 = Utf8               Trav
-   #26 = Utf8               xbc/Native$Up
-   #27 = Class              #26           // xbc/Native$Up
-   #28 = Utf8               Up
-   #29 = Utf8               MODULE$
-   #30 = Utf8               Lxbc/Native$;
-   #31 = Utf8               <clinit>
-   #32 = Utf8               ()V
-   #33 = Utf8               <init>
-   #34 = NameAndType        #33:#32       // "<init>":()V
-   #35 = Methodref          #2.#34        // xbc/Native$."<init>":()V
-   #36 = NameAndType        #29:#30       // MODULE$:Lxbc/Native$;
-   #37 = Fieldref           #2.#36        // xbc/Native$.MODULE$:Lxbc/Native$;
-   #38 = Utf8               nfibRecurive
-   #39 = Utf8               (J)J
-   #40 = Utf8               n
-   #41 = Long               2l
-   #43 = NameAndType        #38:#39       // nfibRecurive:(J)J
-   #44 = Methodref          #2.#43        // xbc/Native$.nfibRecurive:(J)J
-   #45 = Utf8               this
-   #46 = Utf8               J
-   #47 = Utf8               nfibStackSafe
-   #48 = Utf8               (J)V
-   #49 = NameAndType        #33:#48       // "<init>":(J)V
-   #50 = Methodref          #7.#49        // xbc/Native$Down."<init>":(J)V
-   #51 = Utf8               Lxbc/Native$KRet$;
-   #52 = NameAndType        #29:#51       // MODULE$:Lxbc/Native$KRet$;
-   #53 = Fieldref           #18.#52       // xbc/Native$KRet$.MODULE$:Lxbc/Native$KRet$;
-   #54 = Utf8               nfibLoop$1
-   #55 = Utf8               (Lxbc/Native$Trav;Lxbc/Native$K;)J
-   #56 = NameAndType        #54:#55       // nfibLoop$1:(Lxbc/Native$Trav;Lxbc/Native$K;)J
-   #57 = Methodref          #2.#56        // xbc/Native$.nfibLoop$1:(Lxbc/Native$Trav;Lxbc/Native$K;)J
-   #58 = Utf8               tripLoop
-   #59 = Utf8               (JJJ)J
-   #60 = Utf8               step
-   #61 = Utf8               acc
-   #62 = Utf8               i
-   #63 = Utf8               trip
-   #64 = Long               3l
-   #66 = NameAndType        #58:#59       // tripLoop:(JJJ)J
-   #67 = Methodref          #2.#66        // xbc/Native$.tripLoop:(JJJ)J
-   #68 = Utf8               trav
-   #69 = Utf8               k
-   #70 = Utf8               ()J
-   #71 = NameAndType        #40:#70       // n:()J
-   #72 = Methodref          #7.#71        // xbc/Native$Down.n:()J
-   #73 = Methodref          #27.#49       // xbc/Native$Up."<init>":(J)V
-   #74 = Utf8               (JLxbc/Native$K;)V
-   #75 = NameAndType        #33:#74       // "<init>":(JLxbc/Native$K;)V
-   #76 = Methodref          #15.#75       // xbc/Native$KLeft."<init>":(JLxbc/Native$K;)V
-   #77 = Utf8               res
-   #78 = NameAndType        #77:#70       // res:()J
-   #79 = Methodref          #27.#78       // xbc/Native$Up.res:()J
-   #80 = Utf8               equals
-   #81 = Utf8               (Ljava/lang/Object;)Z
-   #82 = NameAndType        #80:#81       // equals:(Ljava/lang/Object;)Z
-   #83 = Methodref          #4.#82        // java/lang/Object.equals:(Ljava/lang/Object;)Z
-   #84 = Methodref          #15.#71       // xbc/Native$KLeft.n:()J
-   #85 = Utf8               ()Lxbc/Native$K;
-   #86 = NameAndType        #69:#85       // k:()Lxbc/Native$K;
-   #87 = Methodref          #15.#86       // xbc/Native$KLeft.k:()Lxbc/Native$K;
-   #88 = Methodref          #21.#75       // xbc/Native$KRight."<init>":(JLxbc/Native$K;)V
-   #89 = Utf8               v
-   #90 = NameAndType        #89:#70       // v:()J
-   #91 = Methodref          #21.#90       // xbc/Native$KRight.v:()J
-   #92 = Methodref          #21.#86       // xbc/Native$KRight.k:()Lxbc/Native$K;
-   #93 = Utf8               scala/MatchError
-   #94 = Class              #93           // scala/MatchError
-   #95 = Utf8               (Ljava/lang/Object;)V
-   #96 = NameAndType        #33:#95       // "<init>":(Ljava/lang/Object;)V
-   #97 = Methodref          #94.#96       // scala/MatchError."<init>":(Ljava/lang/Object;)V
-   #98 = Utf8               Lxbc/Native$K;
-   #99 = Utf8               resL
-  #100 = Utf8               Lxbc/Native$Trav;
-  #101 = Methodref          #4.#34        // java/lang/Object."<init>":()V
-  #102 = Utf8               Code
-  #103 = Utf8               LineNumberTable
-  #104 = Utf8               StackMapTable
-  #105 = Utf8               LocalVariableTable
-  #106 = Utf8               MethodParameters
-  #107 = Utf8               InnerClasses
-  #108 = Utf8               SourceFile
-  #109 = Utf8               ScalaInlineInfo
-  #110 = Utf8               Scala
+   #1 = Utf8               xbc/Native$
+   #2 = Class              #1             // xbc/Native$
+   #3 = Utf8               java/lang/Object
+   #4 = Class              #3             // java/lang/Object
+   #5 = Utf8               Native.scala
+   #6 = Utf8               MODULE$
+   #7 = Utf8               Lxbc/Native$;
+   #8 = Utf8               <clinit>
+   #9 = Utf8               ()V
+  #10 = Utf8               <init>
+  #11 = NameAndType        #10:#9         // "<init>":()V
+  #12 = Methodref          #2.#11         // xbc/Native$."<init>":()V
+  #13 = NameAndType        #6:#7          // MODULE$:Lxbc/Native$;
+  #14 = Fieldref           #2.#13         // xbc/Native$.MODULE$:Lxbc/Native$;
+  #15 = Utf8               nfibRecurive
+  #16 = Utf8               (J)J
+  #17 = Utf8               n
+  #18 = Long               2l
+  #20 = NameAndType        #15:#16        // nfibRecurive:(J)J
+  #21 = Methodref          #2.#20         // xbc/Native$.nfibRecurive:(J)J
+  #22 = Utf8               this
+  #23 = Utf8               J
+  #24 = Utf8               tripLoop
+  #25 = Utf8               (JJJ)J
+  #26 = Utf8               step
+  #27 = Utf8               acc
+  #28 = Utf8               i
+  #29 = Utf8               trip
+  #30 = Long               3l
+  #32 = NameAndType        #24:#25        // tripLoop:(JJJ)J
+  #33 = Methodref          #2.#32         // xbc/Native$.tripLoop:(JJJ)J
+  #34 = Methodref          #4.#11         // java/lang/Object."<init>":()V
+  #35 = Utf8               Code
+  #36 = Utf8               LineNumberTable
+  #37 = Utf8               StackMapTable
+  #38 = Utf8               LocalVariableTable
+  #39 = Utf8               MethodParameters
+  #40 = Utf8               SourceFile
+  #41 = Utf8               ScalaInlineInfo
+  #42 = Utf8               Scala
 {
   public static final xbc.Native$ MODULE$;
     descriptor: Lxbc/Native$;
@@ -130,8 +62,8 @@ Constant pool:
       stack=2, locals=0, args_size=0
          0: new           #2                  // class xbc/Native$
          3: dup
-         4: invokespecial #35                 // Method "<init>":()V
-         7: putstatic     #37                 // Field MODULE$:Lxbc/Native$;
+         4: invokespecial #12                 // Method "<init>":()V
+         7: putstatic     #14                 // Field MODULE$:Lxbc/Native$;
         10: return
       LineNumberTable:
         line 9: 0
@@ -142,7 +74,7 @@ Constant pool:
     Code:
       stack=7, locals=3, args_size=2
          0: lload_1
-         1: ldc2_w        #41                 // long 2l
+         1: ldc2_w        #18                 // long 2l
          4: lcmp
          5: ifge          12
          8: lconst_1
@@ -151,12 +83,12 @@ Constant pool:
         13: lload_1
         14: lconst_1
         15: lsub
-        16: invokevirtual #44                 // Method nfibRecurive:(J)J
+        16: invokevirtual #21                 // Method nfibRecurive:(J)J
         19: aload_0
         20: lload_1
-        21: ldc2_w        #41                 // long 2l
+        21: ldc2_w        #18                 // long 2l
         24: lsub
-        25: invokevirtual #44                 // Method nfibRecurive:(J)J
+        25: invokevirtual #21                 // Method nfibRecurive:(J)J
         28: ladd
         29: lconst_1
         30: ladd
@@ -173,29 +105,6 @@ Constant pool:
         Start  Length  Slot  Name   Signature
             0      32     0  this   Lxbc/Native$;
             0      32     1     n   J
-    MethodParameters:
-      Name                           Flags
-      n                              final
-
-  public long nfibStackSafe(long);
-    descriptor: (J)J
-    flags: (0x0001) ACC_PUBLIC
-    Code:
-      stack=5, locals=3, args_size=2
-         0: aload_0
-         1: new           #7                  // class xbc/Native$Down
-         4: dup
-         5: lload_1
-         6: invokespecial #50                 // Method xbc/Native$Down."<init>":(J)V
-         9: getstatic     #53                 // Field xbc/Native$KRet$.MODULE$:Lxbc/Native$KRet$;
-        12: invokespecial #57                 // Method nfibLoop$1:(Lxbc/Native$Trav;Lxbc/Native$K;)J
-        15: lreturn
-      LineNumberTable:
-        line 52: 0
-      LocalVariableTable:
-        Start  Length  Slot  Name   Signature
-            0      16     0  this   Lxbc/Native$;
-            0      16     1     n   J
     MethodParameters:
       Name                           Flags
       n                              final
@@ -229,8 +138,8 @@ Constant pool:
         frame_type = 78 /* same_locals_1_stack_item */
           stack = [ long ]
       LineNumberTable:
-        line 57: 0
-        line 59: 11
+        line 23: 0
+        line 25: 11
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             0      27     0  this   Lxbc/Native$;
@@ -248,17 +157,17 @@ Constant pool:
     flags: (0x0001) ACC_PUBLIC
     Code:
       stack=7, locals=5, args_size=2
-         0: ldc2_w        #64                 // long 3l
+         0: ldc2_w        #30                 // long 3l
          3: lstore_3
          4: aload_0
          5: lload_3
          6: lconst_0
          7: lload_1
-         8: invokevirtual #67                 // Method tripLoop:(JJJ)J
+         8: invokevirtual #33                 // Method tripLoop:(JJJ)J
         11: lreturn
       LineNumberTable:
-        line 65: 0
-        line 66: 4
+        line 31: 0
+        line 32: 4
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             4       7     3  step   J
@@ -268,205 +177,13 @@ Constant pool:
       Name                           Flags
       i                              final
 
-  private final long nfibLoop$1(xbc.Native$Trav, xbc.Native$K);
-    descriptor: (Lxbc/Native$Trav;Lxbc/Native$K;)J
-    flags: (0x0012) ACC_PRIVATE, ACC_FINAL
-    Code:
-      stack=6, locals=24, args_size=3
-         0: aload_1
-         1: astore        8
-         3: aload         8
-         5: instanceof    #7                  // class xbc/Native$Down
-         8: ifeq          74
-        11: aload         8
-        13: checkcast     #7                  // class xbc/Native$Down
-        16: astore        9
-        18: aload         9
-        20: invokevirtual #72                 // Method xbc/Native$Down.n:()J
-        23: lstore        10
-        25: lload         10
-        27: ldc2_w        #41                 // long 2l
-        30: lcmp
-        31: ifge          48
-        34: new           #27                 // class xbc/Native$Up
-        37: dup
-        38: lconst_1
-        39: invokespecial #73                 // Method xbc/Native$Up."<init>":(J)V
-        42: aload_2
-        43: astore_2
-        44: astore_1
-        45: goto          0
-        48: new           #7                  // class xbc/Native$Down
-        51: dup
-        52: lload         10
-        54: lconst_1
-        55: lsub
-        56: invokespecial #50                 // Method xbc/Native$Down."<init>":(J)V
-        59: new           #15                 // class xbc/Native$KLeft
-        62: dup
-        63: lload         10
-        65: aload_2
-        66: invokespecial #76                 // Method xbc/Native$KLeft."<init>":(JLxbc/Native$K;)V
-        69: astore_2
-        70: astore_1
-        71: goto          0
-        74: goto          77
-        77: aload         8
-        79: instanceof    #27                 // class xbc/Native$Up
-        82: ifeq          254
-        85: aload         8
-        87: checkcast     #27                 // class xbc/Native$Up
-        90: astore        12
-        92: aload         12
-        94: invokevirtual #79                 // Method xbc/Native$Up.res:()J
-        97: lstore        13
-        99: aload_2
-       100: astore        15
-       102: getstatic     #53                 // Field xbc/Native$KRet$.MODULE$:Lxbc/Native$KRet$;
-       105: aload         15
-       107: invokevirtual #83                 // Method java/lang/Object.equals:(Ljava/lang/Object;)Z
-       110: ifeq          120
-       113: lload         13
-       115: lstore        6
-       117: goto          247
-       120: goto          123
-       123: aload         15
-       125: instanceof    #15                 // class xbc/Native$KLeft
-       128: ifeq          181
-       131: aload         15
-       133: checkcast     #15                 // class xbc/Native$KLeft
-       136: astore        16
-       138: aload         16
-       140: invokevirtual #84                 // Method xbc/Native$KLeft.n:()J
-       143: lstore        17
-       145: aload         16
-       147: invokevirtual #87                 // Method xbc/Native$KLeft.k:()Lxbc/Native$K;
-       150: astore        19
-       152: new           #7                  // class xbc/Native$Down
-       155: dup
-       156: lload         17
-       158: ldc2_w        #41                 // long 2l
-       161: lsub
-       162: invokespecial #50                 // Method xbc/Native$Down."<init>":(J)V
-       165: new           #21                 // class xbc/Native$KRight
-       168: dup
-       169: lload         13
-       171: aload         19
-       173: invokespecial #88                 // Method xbc/Native$KRight."<init>":(JLxbc/Native$K;)V
-       176: astore_2
-       177: astore_1
-       178: goto          0
-       181: goto          184
-       184: aload         15
-       186: instanceof    #21                 // class xbc/Native$KRight
-       189: ifeq          234
-       192: aload         15
-       194: checkcast     #21                 // class xbc/Native$KRight
-       197: astore        20
-       199: aload         20
-       201: invokevirtual #91                 // Method xbc/Native$KRight.v:()J
-       204: lstore        21
-       206: aload         20
-       208: invokevirtual #92                 // Method xbc/Native$KRight.k:()Lxbc/Native$K;
-       211: astore        23
-       213: new           #27                 // class xbc/Native$Up
-       216: dup
-       217: lload         21
-       219: lload         13
-       221: ladd
-       222: lconst_1
-       223: ladd
-       224: invokespecial #73                 // Method xbc/Native$Up."<init>":(J)V
-       227: aload         23
-       229: astore_2
-       230: astore_1
-       231: goto          0
-       234: goto          237
-       237: new           #94                 // class scala/MatchError
-       240: dup
-       241: aload         15
-       243: invokespecial #97                 // Method scala/MatchError."<init>":(Ljava/lang/Object;)V
-       246: athrow
-       247: lload         6
-       249: lstore        4
-       251: goto          267
-       254: goto          257
-       257: new           #94                 // class scala/MatchError
-       260: dup
-       261: aload         8
-       263: invokespecial #97                 // Method scala/MatchError."<init>":(Ljava/lang/Object;)V
-       266: athrow
-       267: lload         4
-       269: lreturn
-      StackMapTable: number_of_entries = 14
-        frame_type = 0 /* same */
-        frame_type = 255 /* full_frame */
-          offset_delta = 47
-          locals = [ class xbc/Native$, class xbc/Native$Trav, class xbc/Native$K, top, top, top, top, top, class xbc/Native$Trav, class xbc/Native$Down, long ]
-          stack = []
-        frame_type = 249 /* chop */
-          offset_delta = 25
-        frame_type = 2 /* same */
-        frame_type = 255 /* full_frame */
-          offset_delta = 42
-          locals = [ class xbc/Native$, class xbc/Native$Trav, class xbc/Native$K, top, top, top, top, top, class xbc/Native$Trav, top, top, top, class xbc/Native$Up, long, class xbc/Native$K ]
-          stack = []
-        frame_type = 2 /* same */
-        frame_type = 57 /* same */
-        frame_type = 2 /* same */
-        frame_type = 49 /* same */
-        frame_type = 2 /* same */
-        frame_type = 255 /* full_frame */
-          offset_delta = 9
-          locals = [ class xbc/Native$, class xbc/Native$Trav, class xbc/Native$K, top, top, top, long, class xbc/Native$Trav, top, top, top, class xbc/Native$Up, long, class xbc/Native$K ]
-          stack = []
-        frame_type = 255 /* full_frame */
-          offset_delta = 6
-          locals = [ class xbc/Native$, class xbc/Native$Trav, class xbc/Native$K, top, top, top, top, top, class xbc/Native$Trav ]
-          stack = []
-        frame_type = 2 /* same */
-        frame_type = 255 /* full_frame */
-          offset_delta = 9
-          locals = [ class xbc/Native$, class xbc/Native$Trav, class xbc/Native$K, top, long, long, class xbc/Native$Trav, top, top, top, class xbc/Native$Up, long, class xbc/Native$K ]
-          stack = []
-      LineNumberTable:
-        line 36: 0
-        line 37: 3
-        line 38: 25
-        line 39: 34
-        line 41: 48
-        line 37: 74
-        line 43: 77
-        line 44: 99
-        line 45: 102
-        line 46: 123
-        line 47: 184
-        line 44: 237
-        line 43: 254
-        line 36: 257
-      LocalVariableTable:
-        Start  Length  Slot  Name   Signature
-           25      49    10     n   J
-          145      36    17     n   J
-          152      29    19     k   Lxbc/Native$K;
-          206      28    21  resL   J
-          213      21    23     k   Lxbc/Native$K;
-           99     155    13   res   J
-            0     270     0  this   Lxbc/Native$;
-            0     270     1  trav   Lxbc/Native$Trav;
-            0     270     2     k   Lxbc/Native$K;
-    MethodParameters:
-      Name                           Flags
-      trav                           final
-      k                              final
-
   private xbc.Native$();
     descriptor: ()V
     flags: (0x0002) ACC_PRIVATE
     Code:
       stack=1, locals=1, args_size=1
          0: aload_0
-         1: invokespecial #101                // Method java/lang/Object."<init>":()V
+         1: invokespecial #34                 // Method java/lang/Object."<init>":()V
          4: return
       LineNumberTable:
         line 9: 0
@@ -474,18 +191,9 @@ Constant pool:
         Start  Length  Slot  Name   Signature
             0       5     0  this   Lxbc/Native$;
 }
-InnerClasses:
-  public static final #10= #7 of #9;      // Down=class xbc/Native$Down of class xbc/Native
-  public static #13= #12 of #9;           // K=class xbc/Native$K of class xbc/Native
-  public static final #16= #15 of #9;     // KLeft=class xbc/Native$KLeft of class xbc/Native
-  public static final #19= #18 of #9;     // KRet$=class xbc/Native$KRet$ of class xbc/Native
-  public static final #22= #21 of #9;     // KRight=class xbc/Native$KRight of class xbc/Native
-  public static #25= #24 of #9;           // Trav=class xbc/Native$Trav of class xbc/Native
-  public static final #28= #27 of #9;     // Up=class xbc/Native$Up of class xbc/Native
 SourceFile: "Native.scala"
-  ScalaInlineInfo: length = 0x22 (unknown attribute)
-   01 01 00 06 00 21 00 20 01 00 36 00 37 01 00 26
-   00 27 01 00 2F 00 27 01 00 3F 00 27 01 00 3A 00
-   3B 01
+  ScalaInlineInfo: length = 0x18 (unknown attribute)
+   01 01 00 04 00 0A 00 09 01 00 0F 00 10 01 00 1D
+   00 10 01 00 18 00 19 01
   Scala: length = 0x0 (unknown attribute)
 
