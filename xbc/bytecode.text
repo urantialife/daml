@@ -1,4 +1,4 @@
-Classfile /home/nic/daml/xbc/tmp/xbc/Native$.class
+Classfile /home/nic/daml/tmp/xbc/Native$.class
   Last modified Jan 1, 2010; size 1665 bytes
   MD5 checksum f7e3ab9f34531c3b4d4be0f1259d234f
   Compiled from "Native.scala"
@@ -320,7 +320,7 @@ SourceFile: "Native.scala"
    20 01
   Scala: length = 0x0 (unknown attribute)
 
-Classfile /home/nic/daml/xbc/tmp/xbc/Native.class
+Classfile /home/nic/daml/tmp/xbc/Native.class
   Last modified Jan 1, 2010; size 852 bytes
   MD5 checksum 2648dc2728c08afa61c01a97e8b2ddbe
   Compiled from "Native.scala"
