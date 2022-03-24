@@ -6,14 +6,44 @@ package xbc
 // Examples writen natively in scala
 object Native {
 
-  def nfib(n: Long): Long = {
+  def nfibRecurive(n: Long): Long = {
     // Not quite the fib function, as here we +1 in the recursive case.
     // So the function result is equal to the number of function calls.
     if (n < 2) {
       1
     } else {
-      nfib(n - 1) + nfib(n - 2) + 1
+      nfibRecurive(n - 1) + nfibRecurive(n - 2) + 1
     }
+  }
+
+  abstract trait Trav
+  case class Down(n: Long) extends Trav
+  case class Up(res: Long) extends Trav
+
+  abstract trait K
+  case object KRet extends K
+  case class KLeft(n: Long, k: K) extends K
+  case class KRight(v: Long, k: K) extends K
+
+  def nfibLoop(trav: Trav, k: K): Long = {
+    trav match {
+      case Down(n) =>
+        if (n < 2) {
+          nfibLoop(Up(1), k)
+        } else {
+          nfibLoop(Down(n - 1), KLeft(n, k))
+        }
+      case Up(res) =>
+        k match {
+          case KRet => res
+          case KLeft(n, k) => nfibLoop(Down(n - 2), KRight(res, k))
+          case KRight(resL, k) => nfibLoop(Up(resL + res + 1), k)
+        }
+    }
+  }
+
+  def nfibStackSafe(n: Long): Long = {
+    nfibLoop(Down(n), KRet)
   }
 
   def tripLoop(step: Long, acc: Long, i: Long): Long = {

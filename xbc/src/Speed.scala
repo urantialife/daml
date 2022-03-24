@@ -16,6 +16,7 @@ object Speed extends App {
     val defaultGroup: String = "nfib"
     def xv(v: String) = v match {
       case "n" => "native"
+      case "nk" => "native-cps"
       case "i" => "interpreter"
       case s => s
     }
@@ -41,7 +42,8 @@ object Speed extends App {
   // - the computational effort should scale exponentially with the input N
   // - the result should be indicative of the computation effort
 
-  val nfib_n: FUT = Native.nfib(_)
+  val nfib_n: FUT = Native.nfibRecurive(_)
+  val nfib_nk: FUT = Native.nfibStackSafe(_)
 
   val nfib_i: FUT = (x: Long) => {
     import Lang._
@@ -70,6 +72,7 @@ object Speed extends App {
     "nfib" -> List(
       "interpreter" -> nfib_i,
       "native" -> nfib_n,
+      "native-cps" -> nfib_nk,
     ),
     "trip" -> List(
       "native" -> trip_n
