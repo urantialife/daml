@@ -68,8 +68,8 @@ object Speed extends App {
   // map of groups of FUTs
   def m: Map[String, List[(String, FUT)]] = Map(
     "nfib" -> List(
-      "native" -> nfib_n,
       "interpreter" -> nfib_i,
+      "native" -> nfib_n,
     ),
     "trip" -> List(
       "native" -> trip_n
@@ -100,40 +100,52 @@ object Speed extends App {
       val setup = Setup(group, version, n)
       while (true) {
         val outcome = runTest(setup)
-        printOutcomeLine(outcome)
+        printOutcomeLine(outcome, 1.0)
       }
 
     case Conf.IncreasingN(group, version) =>
       printHeader()
-      var n: Long = 20L
+      var n: Long = 27L
       while (true) {
         val setup = Setup(group, version, n)
         val outcome = runTest(setup)
-        printOutcomeLine(outcome)
+        printOutcomeLine(outcome, 1.0)
         n += 1
       }
 
     case Conf.WholeGroup(group) =>
       printHeader()
-      getVersions(group).foreach { version =>
-        var n: Long = 20L
-        var more: Boolean = true
-        while (more) {
+
+      def runVersion(version: String): Outcome = {
+        def loop(n: Long): Outcome = {
           val setup = Setup(group, version, n)
           val outcome = runTest(setup)
           if (outcome.dur_s > 0.3) {
-            printOutcomeLine(outcome)
-            more = false
+            outcome
+          } else {
+            loop(n + 1)
           }
-          n += 1
         }
+        loop(20L)
       }
 
+      getVersions(group) match {
+        case Nil =>
+          sys.error(s"\n**no versions for group: $group")
+        case leadVersion :: versions =>
+          val leadOutcome = runVersion(leadVersion)
+          printOutcomeLine(leadOutcome, 1.0)
+          versions.foreach { version =>
+            val outcome = runVersion(version)
+            val relative: Double = outcome.speed / leadOutcome.speed
+            printOutcomeLine(outcome, relative)
+          }
+      }
   }
 
   case class Setup(group: String, version: String, n: Long)
 
-  case class Outcome(setup: Setup, res: Long, dur_s: Double, speed: Float)
+  case class Outcome(setup: Setup, res: Long, dur_s: Double, speed: Double)
 
   def runTest(setup: Setup): Outcome = {
     setup match {
@@ -144,18 +156,18 @@ object Speed extends App {
         val end = System.currentTimeMillis()
         val dur_ms = end - start
         val dur_s = dur_ms.toFloat / 1000.0
-        val speed = res / (1000 * dur_ms).toFloat
+        val speed = res / (1000 * dur_ms).toDouble
         Outcome(setup, res, dur_s, speed)
     }
   }
 
   def printHeader() = {
-    println(s"scale result  duration  speed      name")
-    println(s"N   #ops        secs    ops/us     group-version")
-    println(s"--------------------------------------------------")
+    println(s"size result   duration  speed     relative  name")
+    println(s"N   #ops         secs   ops/us    speedup   group-version")
+    println(s"----------------------------------------------------------")
   }
 
-  def printOutcomeLine(outcome: Outcome) = {
+  def printOutcomeLine(outcome: Outcome, relative: Double) = {
 
     def pad(s: String, max: Int): String = {
       val ss = s.size
@@ -169,7 +181,10 @@ object Speed extends App {
         setup match {
           case Setup(group, version, n) =>
             println(
-              s"${pad(s"$n", 4)}${pad(s"$res", 12)}${pad(f"$dur_s%.2f", 8)}${pad(f"$speed%.2f", 11)}$group-$version"
+              s"${pad(s"$n", 3)} ${pad(s"$res", 12)} ${pad(f"$dur_s%.2f", 6)} ${pad(
+                f"$speed%.2f",
+                9,
+              )} x${pad(f"$relative%.2f", 8)} $group-$version"
             )
         }
     }
