@@ -22,16 +22,15 @@ object Native {
 
   def trix(n: Long): Long = {
     // compute 3*n using iteration, then divide by 3
-    //@tailrec //NICK: effects bytecode?
-    def loop(step: Long, acc: Long, i: Long): Long = {
+    def trixLoop(step: Long, acc: Long, i: Long): Long = { // this is compiled to goto
       if (i == 0) acc
       else {
-        loop(step, acc + step, i - 1)
+        trixLoop(step, acc + step, i - 1)
       }
     }
     val step = 3L
     val i = lpower(2, n) //to be scalable
-    loop(step, 0L, i) / step
+    trixLoop(step, 0L, i) / step
   }
 
   def lpower(base: Long, exponent: Long): Long = {
@@ -39,8 +38,8 @@ object Native {
     if (exponent < 0) {
       sys.error(s"\n**lpower, negative exponent: $exponent")
     } else {
-      def loop(i: Long): Long = if (i == 0) 1 else base * loop(i - 1)
-      loop(exponent)
+      def powerLoop(i: Long): Long = if (i == 0) 1 else base * powerLoop(i - 1)
+      powerLoop(exponent)
     }
   }
 
