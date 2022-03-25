@@ -72,30 +72,30 @@ object Speed extends App {
   }
 
   // map of groups of FUTs
-  def m: Map[String, List[(String, FUT)]] = Map(
-    "nfib" -> List(
+  def m: Map[String, (Option[Double], List[(String, FUT)])] = Map(
+    "nfib" -> (Some(2.0), List( //baseline for speedy on same example
       "interpreter-cps" -> nfib_ik,
       "interpreter" -> nfib_i,
       "native" -> nfib_n,
-    ),
-    "trip" -> List(
+    )),
+    "trip" -> (None, List(
       "interpreter-cps" -> trip_ik,
       "interpreter" -> trip_i,
       "native" -> trip_n,
-    ),
+    )),
   )
 
-  def getVersions(group: String): List[String] = {
+  def getVersions(group: String): (Option[Double], List[String]) = {
     m.get(group) match {
       case None => sys.error(s"\n**unknown group: $group")
-      case Some(g) => g.map(_._1)
+      case Some((optBaseline, g)) => (optBaseline, (g.map(_._1)))
     }
   }
 
   def getFUT(group: String, version: String): FUT = {
     m.get(group) match {
       case None => sys.error(s"\n**unknown group: $group")
-      case Some(g) =>
+      case Some((_, g)) =>
         g.toMap.get(version) match {
           case None => sys.error(s"\n**unknown version: $version")
           case Some(f) => f
@@ -138,15 +138,22 @@ object Speed extends App {
         loop(20L)
       }
 
-      getVersions(group) match {
+      val (optBaseline, versions) = getVersions(group)
+      versions match {
         case Nil =>
           sys.error(s"\n**no versions for group: $group")
         case leadVersion :: versions =>
           val leadOutcome = runVersion(leadVersion)
-          printOutcomeLine(leadOutcome, 1.0)
+          val baselineSpeed = optBaseline match {
+            case None => leadOutcome.speed
+            case Some(baseline) => baseline
+          }
+          val leadRelative = leadOutcome.speed / baselineSpeed
+          printOutcomeLine(leadOutcome, leadRelative)
+
           versions.foreach { version =>
             val outcome = runVersion(version)
-            val relative: Double = outcome.speed / leadOutcome.speed
+            val relative = outcome.speed / baselineSpeed
             printOutcomeLine(outcome, relative)
           }
       }
