@@ -51,7 +51,7 @@ object Speed extends App {
 
   val nfib_ik: FUT = (x: Long) => {
     def prog = Lang.Examples.nfibProgram(x)
-    Interpret.cps(prog)
+    InterpretK.cps(prog)
   }
 
   val trip_n: FUT = (x: Long) => {
@@ -68,7 +68,7 @@ object Speed extends App {
   val trip_ik: FUT = (x: Long) => {
     val y = lpower(2, x)
     def prog = Lang.Examples.tripProgram(y)
-    Interpret.cps(prog) / 3L
+    InterpretK.cps(prog) / 3L
   }
 
   // map of groups of FUTs

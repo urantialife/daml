@@ -19,13 +19,12 @@ object Lang {
 
   case class Program(defs: Map[FnName, Exp], main: Exp)
 
-  type Value = Long
-
   object Examples {
 
     def nfibProgram(size: Long): Program = {
       def nfib(e: Exp) = FnCall("nfib", List(e))
-      def body(n: Exp): Exp = {
+      val body: Exp = {
+        val n = Arg(0)
         IfNot0(
           Less(n, Num(2)),
           Num(1),
@@ -33,7 +32,7 @@ object Lang {
         )
       }
       Program(
-        defs = Map("nfib" -> body(Arg(0))),
+        defs = Map("nfib" -> body),
         main = nfib(Num(size)),
       )
     }
