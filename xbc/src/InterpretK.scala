@@ -5,7 +5,7 @@ package xbc
 
 import scala.annotation.tailrec
 
-object InterpretK {
+object InterpretK { // cps-style interpreter for Lang (for stack-safety)
 
   import Lang._
 

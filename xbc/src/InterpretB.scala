@@ -5,13 +5,12 @@ package xbc
 
 import scala.annotation.tailrec
 
-object Interpret { // basic interpreter for Lang
-
+object InterpretB { // interpreter for Lang, producing boxed values
   import Lang._
 
-  type Value = Long
+  type Value = BoxedValue
 
-  def standard(program: Program): Value = {
+  def run(program: Program): Value = {
     program match {
       case Program(defs, main) =>
         def nested_evalFrame = evalFrame _
@@ -21,9 +20,10 @@ object Interpret { // basic interpreter for Lang
 
           def eval(exp: Exp): Value =
             exp match {
-              case Num(x) => x
+              case Num(x) => BoxedValue.Number(x)
               case Builtin(binOp, e1, e2) => applyBinOp(binOp, eval(e1), eval(e2))
-              case IfNot0(e1, e2, e3) => if (eval(e1) != 0) eval(e2) else eval(e3)
+              case IfNot0(e1, e2, e3) =>
+                if (BoxedValue.isNotZero(eval(e1))) eval(e2) else eval(e3)
               case Arg(i) => actuals(i)
               case FnCall(fnName, args) =>
                 defs.get(fnName) match {
@@ -36,7 +36,7 @@ object Interpret { // basic interpreter for Lang
 
           body match {
             case IfNot0(e1, e2, e3) =>
-              if (eval(e1) != 0) evalFrame(actuals, e2) else evalFrame(actuals, e3)
+              if (BoxedValue.isNotZero(eval(e1))) evalFrame(actuals, e2) else evalFrame(actuals, e3)
             case FnCall(fnName, args) =>
               defs.get(fnName) match {
                 case None => sys.error(s"FnCall: $fnName")
@@ -55,9 +55,9 @@ object Interpret { // basic interpreter for Lang
 
   def applyBinOp(binOp: BinOp, v1: Value, v2: Value): Value = {
     binOp match {
-      case AddOp => v1 + v2
-      case SubOp => v1 - v2
-      case LessOp => if (v1 < v2) 1 else 0
+      case AddOp => BoxedValue.add(v1, v2)
+      case SubOp => BoxedValue.sub(v1, v2)
+      case LessOp => BoxedValue.less(v1, v2)
     }
   }
 

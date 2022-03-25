@@ -17,6 +17,7 @@ object Speed extends App {
     def xv(v: String) = v match {
       case "n" => "native"
       case "i" => "interpreter"
+      case "ib" => "interpreter-boxed"
       case "ik" => "interpreter-cps"
       case s => s
     }
@@ -49,6 +50,15 @@ object Speed extends App {
     Interpret.standard(prog)
   }
 
+  val nfib_ib: FUT = (x: Long) => {
+    def prog = Lang.Examples.nfibProgram(x)
+    val box = InterpretB.run(prog)
+    BoxedValue.getNumber(box) match {
+      case None => sys.error(s"\n**nfib_ib, expected number, got: box")
+      case Some(x) => x
+    }
+  }
+
   val nfib_ik: FUT = (x: Long) => {
     def prog = Lang.Examples.nfibProgram(x)
     InterpretK.cps(prog)
@@ -75,6 +85,7 @@ object Speed extends App {
   def m: Map[String, (Option[Double], List[(String, FUT)])] = Map(
     "nfib" -> (Some(2.0), List( //baseline for speedy on same example
       "interpreter-cps" -> nfib_ik,
+      "interpreter-boxed" -> nfib_ib,
       "interpreter" -> nfib_i,
       "native" -> nfib_n,
     )),
@@ -179,7 +190,7 @@ object Speed extends App {
 
   def printHeader() = {
     println(s"size result   duration  speed     relative  name")
-    println(s"N   #ops         secs   ops/us    speedup   group-version")
+    println(s"N   #ops         secs   ops/us    speedup   group:version")
     println(s"----------------------------------------------------------")
   }
 
@@ -201,7 +212,7 @@ object Speed extends App {
             val dur = pad(f"$dur0%.2f", 6)
             val speed = pad(f"$speed0%.2f", 9)
             val relative = pad(f"$relative0%.2f", 9)
-            val gv = s"$group-$version"
+            val gv = s"$group:$version"
             println(s"$n $res $dur $speed $relative $gv")
         }
     }
