@@ -7,17 +7,23 @@ object Lang {
 
   type FnName = String
 
+  sealed abstract class BinOp
+  final case object AddOp extends BinOp
+  final case object SubOp extends BinOp
+  final case object LessOp extends BinOp
+
   sealed abstract class Exp
   final case class Num(x: Long) extends Exp
-  final case class Add(e1: Exp, e2: Exp) extends Exp
-  final case class Sub(e1: Exp, e2: Exp) extends Exp
-  final case class Less(e1: Exp, e2: Exp) extends Exp
+  final case class Builtin(b: BinOp, e1: Exp, e2: Exp) extends Exp
   final case class IfNot0(e1: Exp, e2: Exp, e3: Exp) extends Exp
-
   final case class Arg(i: Int) extends Exp
   final case class FnCall(f: FnName, arg: List[Exp]) extends Exp
 
   case class Program(defs: Map[FnName, Exp], main: Exp)
+
+  def Add(e1: Exp, e2: Exp): Exp = Builtin(AddOp, e1, e2)
+  def Sub(e1: Exp, e2: Exp): Exp = Builtin(SubOp, e1, e2)
+  def Less(e1: Exp, e2: Exp): Exp = Builtin(LessOp, e1, e2)
 
   object Examples {
 

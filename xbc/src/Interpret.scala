@@ -22,9 +22,7 @@ object Interpret {
           def eval(exp: Exp): Value =
             exp match {
               case Num(x) => x
-              case Add(e1, e2) => eval(e1) + eval(e2)
-              case Sub(e1, e2) => eval(e1) - eval(e2)
-              case Less(e1, e2) => if (eval(e1) < eval(e2)) 1 else 0
+              case Builtin(binOp, e1, e2) => applyBinOp(binOp, eval(e1), eval(e2))
               case IfNot0(e1, e2, e3) => if (eval(e1) != 0) eval(e2) else eval(e3)
               case Arg(i) => actuals(i)
               case FnCall(fnName, args) =>
@@ -54,4 +52,13 @@ object Interpret {
         evalFrame(Vector(), main)
     }
   }
+
+  def applyBinOp(binOp: BinOp, v1: Value, v2: Value): Value = {
+    binOp match {
+      case AddOp => v1 + v2
+      case SubOp => v1 - v2
+      case LessOp => if (v1 < v2) 1 else 0
+    }
+  }
+
 }

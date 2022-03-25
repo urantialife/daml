@@ -17,12 +17,8 @@ object InterpretK {
 
   sealed abstract trait K
   final case object KRet extends K
-  final case class KAdd1(actuals: Vector[Value], e2: Exp, k: K) extends K
-  final case class KAdd2(res1: Value, k: K) extends K
-  final case class KSub1(actuals: Vector[Value], e2: Exp, k: K) extends K
-  final case class KSub2(res1: Value, k: K) extends K
-  final case class KLess1(actuals: Vector[Value], e2: Exp, k: K) extends K
-  final case class KLess2(res1: Value, k: K) extends K
+  final case class KBin1(b: BinOp, actuals: Vector[Value], e2: Exp, k: K) extends K
+  final case class KBin2(b: BinOp, res1: Value, k: K) extends K
   final case class KIf(actuals: Vector[Value], e2: Exp, e3: Exp, k: K) extends K
   final case class KMoreArgs(
       actuals: Vector[Value],
@@ -43,9 +39,7 @@ object InterpretK {
             case Down(actuals, exp) =>
               exp match {
                 case Num(x) => loop(Up(x), k)
-                case Add(e1, e2) => loop(Down(actuals, e1), KAdd1(actuals, e2, k))
-                case Sub(e1, e2) => loop(Down(actuals, e1), KSub1(actuals, e2, k))
-                case Less(e1, e2) => loop(Down(actuals, e1), KLess1(actuals, e2, k))
+                case Builtin(b, e1, e2) => loop(Down(actuals, e1), KBin1(b, actuals, e2, k))
                 case Arg(i) => loop(Up(actuals(i)), k)
                 case IfNot0(e1, e2, e3) => loop(Down(actuals, e1), KIf(actuals, e2, e3, k))
                 case FnCall(fnName, args) =>
@@ -63,12 +57,8 @@ object InterpretK {
             case Up(res) =>
               k match {
                 case KRet => res
-                case KAdd1(actuals, e2, k) => loop(Down(actuals, e2), KAdd2(res, k))
-                case KAdd2(res1, k) => loop(Up(res1 + res), k)
-                case KSub1(actuals, e2, k) => loop(Down(actuals, e2), KSub2(res, k))
-                case KSub2(res1, k) => loop(Up(res1 - res), k)
-                case KLess1(actuals, e2, k) => loop(Down(actuals, e2), KLess2(res, k))
-                case KLess2(res1, k) => loop(Up(if (res1 < res) 1 else 0), k)
+                case KBin1(b, actuals, e2, k) => loop(Down(actuals, e2), KBin2(b, res, k))
+                case KBin2(b, res1, k) => loop(Up(applyBinOp(b, res1, res)), k)
                 case KIf(actuals, e2, e3, k) =>
                   if (res != 0) loop(Down(actuals, e2), k) else loop(Down(actuals, e3), k)
                 case KMoreArgs(actuals, results0, args, body, k) =>
@@ -86,7 +76,14 @@ object InterpretK {
 
         loop(Down(Vector(), main), KRet)
     }
+  }
 
+  def applyBinOp(binOp: BinOp, v1: Value, v2: Value): Value = {
+    binOp match {
+      case AddOp => v1 + v2
+      case SubOp => v1 - v2
+      case LessOp => if (v1 < v2) 1 else 0
+    }
   }
 
 }
