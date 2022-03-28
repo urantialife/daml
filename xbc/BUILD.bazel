@@ -12,4 +12,7 @@ da_scala_binary(
         "src/**/*.scala",
     ]),
     main_class = "xbc.Speed",
+    deps = [
+        "@maven//:org_ow2_asm_asm",
+    ],
 )

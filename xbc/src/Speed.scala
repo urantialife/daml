@@ -10,10 +10,11 @@ object Speed extends App {
     final case class FixedN(group: String, version: String, n: Long) extends Conf
     final case class IncreasingN(group: String, version: String) extends Conf
     final case class WholeGroup(group: String) extends Conf
+    final case class PlayGen() extends Conf
   }
 
   def conf: Conf = {
-    val defaultGroup: String = "nfib"
+    //val defaultGroup: String = "nfib"
     def xv(v: String) = v match {
       case "n" => "native"
       case "i" => "interpreter"
@@ -23,7 +24,10 @@ object Speed extends App {
     }
     args.toList match {
       case Nil =>
-        Conf.WholeGroup(defaultGroup)
+        //Conf.WholeGroup(defaultGroup)
+        Conf.PlayGen()
+      case "play" :: Nil =>
+        Conf.PlayGen()
       case group :: Nil =>
         Conf.WholeGroup(group)
       case group :: version :: Nil =>
@@ -43,7 +47,7 @@ object Speed extends App {
   // - the computational effort should scale exponentially with the input N
   // - the result should be indicative of the computation effort
 
-  val nfib_n: FUT = Native.nfibRecurive(_)
+  val nfib_n: FUT = Native.nfibRecursive(_)
 
   val nfib_i: FUT = (x: Long) => {
     def prog = Lang.Examples.nfibProgram(x)
@@ -83,7 +87,7 @@ object Speed extends App {
 
   // map of groups of FUTs
   def m: Map[String, (Option[Double], List[(String, FUT)])] = Map(
-    "nfib" -> (Some(2.0), List( //baseline for speedy on same example
+    "nfib" -> (None, List( //baseline for speedy on same example
       "interpreter-cps" -> nfib_ik,
       "interpreter-boxed" -> nfib_ib,
       "interpreter" -> nfib_i,
@@ -115,6 +119,10 @@ object Speed extends App {
   }
 
   conf match {
+
+    case Conf.PlayGen() =>
+      Play.gen()
+
     case Conf.FixedN(group, version, n) =>
       printHeader()
       val setup = Setup(group, version, n)

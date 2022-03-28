@@ -8,13 +8,13 @@ import scala.annotation.tailrec
 // Examples writen natively in scala
 object Native {
 
-  def nfibRecurive(n: Long): Long = {
+  def nfibRecursive(n: Long): Long = {
     // Not quite the fib function, as here we +1 in the recursive case.
     // So the function result is equal to the number of function calls.
     if (n < 2) {
       1
     } else {
-      nfibRecurive(n - 1) + nfibRecurive(n - 2) + 1
+      nfibRecursive(n - 1) + nfibRecursive(n - 2) + 1
     }
   }
 
