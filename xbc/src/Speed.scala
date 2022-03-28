@@ -121,7 +121,12 @@ object Speed extends App {
   conf match {
 
     case Conf.PlayGen() =>
-      Play.run()
+      val code1 = Play.makeCodeToPrintMessage("Hello, world!")
+      val code2 = Play.makeCodeToPrintMessage("And here's a second message.")
+      code1.run()
+      code2.run()
+      code1.run()
+      code2.run()
 
     case Conf.FixedN(group, version, n) =>
       printHeader()
