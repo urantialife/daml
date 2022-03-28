@@ -121,7 +121,7 @@ object Speed extends App {
   conf match {
 
     case Conf.PlayGen() =>
-      Play.gen()
+      Play.run()
 
     case Conf.FixedN(group, version, n) =>
       printHeader()

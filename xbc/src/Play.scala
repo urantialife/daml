@@ -6,19 +6,34 @@ package xbc
 import org.objectweb.asm._
 import org.objectweb.asm.Opcodes._
 
-import java.io.FileOutputStream
+class MyClassLoader extends ClassLoader { //NICK, take byte array as class arg?
+
+  override def findClass(name: String): Class[_] = {
+    println(s"MyClassLoader.findClass: $name ...")
+    def ab: Array[Byte] = Play.makeByteArray()
+    defineClass(name, ab, 0, ab.length)
+  }
+}
 
 object Play { // Play with bytecode generation using Asm
 
-  def gen(): Unit = {
+  val theClassName = "MyClass"
+  val theMethodName = "go"
 
-    val repo = "/home/nic/daml"
-    val className = "MyGenerated"
+  def run(): Unit = {
+    val loader = new MyClassLoader()
+    val aClass = loader.loadClass(theClassName)
+    val method = aClass.getMethod(theMethodName)
+    println("calling...");
+    val _ = method.invoke(null);
+    println("calling...done");
+  }
 
+  def makeByteArray(): Array[Byte] = {
     val cw: ClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
-    cw.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
+    cw.visit(V1_8, ACC_PUBLIC, theClassName, null, "java/lang/Object", null)
     val mv: MethodVisitor =
-      cw.visitMethod(ACC_PUBLIC | ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
+      cw.visitMethod(ACC_PUBLIC | ACC_STATIC, theMethodName, "()V", null, null)
     mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
     mv.visitLdcInsn("Hello, here is my message!")
     mv.visitMethodInsn(
@@ -30,13 +45,8 @@ object Play { // Play with bytecode generation using Asm
     )
     mv.visitInsn(RETURN)
     mv.visitMaxs(-1, -1)
-
-    val path = repo + "/" + className + ".class"
     val ab: Array[Byte] = cw.toByteArray()
-    println(s"Writing: $path, #${ab.length} bytes")
-    val f = new FileOutputStream(path)
-    f.write(ab)
-
+    ab
   }
 
 }
