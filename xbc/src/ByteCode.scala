@@ -22,27 +22,18 @@ final class ByteCode(className: String, methodName: String, bytes: Array[Byte]) 
     }
   }
 
-  def run0(): Unit = { // run bytecode with 0 args
+  def run0(): Long = { // run with 0 args; return long
     val aClass = MyClassLoader.loadClass(className)
     val method = aClass.getMethod(methodName)
-    val _ = method.invoke(null)
-    ()
+    method.invoke(null).asInstanceOf[Long]
   }
 
-  def run1(arg1: Long): Unit = { // run bytecode with 1 long arg
-    val aClass = MyClassLoader.loadClass(className)
-    val longType: Class[_] = classOf[Long]
-    val method = aClass.getMethod(methodName, longType)
-    val _ = method.invoke(null, arg1)
-    ()
-  }
-
-  def run2(arg1: Long, arg2: Long): Unit = { // run bytecode with 2 long args
+  def run2(arg1: Long, arg2: Long): Long = { // run with 2 long args; return long
     val aClass = MyClassLoader.loadClass(className)
     val longType: Class[_] = classOf[Long]
     val method = aClass.getMethod(methodName, longType, longType)
-    val _ = method.invoke(null, arg1, arg2)
-    ()
+    val res: Object = method.invoke(null, arg1, arg2)
+    res.asInstanceOf[Long]
   }
 
 }

@@ -14,5 +14,15 @@ da_scala_binary(
     main_class = "xbc.Speed",
     deps = [
         "@maven//:org_ow2_asm_asm",
+        "byhandjava",
+    ],
+)
+
+java_library(
+    name = "byhandjava",
+    srcs = glob([
+        "src/**/*.java",
+    ]),
+    deps = [
     ],
 )

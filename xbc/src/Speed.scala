@@ -10,24 +10,28 @@ object Speed extends App {
     final case class FixedN(group: String, version: String, n: Long) extends Conf
     final case class IncreasingN(group: String, version: String) extends Conf
     final case class WholeGroup(group: String) extends Conf
-    final case class PlayGen() extends Conf
+    final case class PlayGenBytecode() extends Conf
+    final case class TryCompileToBytecode() extends Conf
   }
 
   def conf: Conf = {
-    //val defaultGroup: String = "nfib"
     def xv(v: String) = v match {
-      case "n" => "native"
+      case "hs" => "byhand-scala"
+      case "hj" => "byhand-java-v2"
       case "i" => "interpreter"
       case "ib" => "interpreter-boxed"
       case "ik" => "interpreter-cps"
       case s => s
     }
+    //val defaultConf = Conf.WholeGroup("nfib")
+    val defaultConf = Conf.TryCompileToBytecode()
     args.toList match {
       case Nil =>
-        //Conf.WholeGroup(defaultGroup)
-        Conf.PlayGen()
+        defaultConf
       case "play" :: Nil =>
-        Conf.PlayGen()
+        Conf.PlayGenBytecode()
+      case "compile" :: Nil =>
+        Conf.TryCompileToBytecode()
       case group :: Nil =>
         Conf.WholeGroup(group)
       case group :: version :: Nil =>
@@ -47,7 +51,10 @@ object Speed extends App {
   // - the computational effort should scale exponentially with the input N
   // - the result should be indicative of the computation effort
 
-  val nfib_n: FUT = Native.nfibRecursive(_)
+  val nfib_ns: FUT = Native.nfibRecursive(_) //NICK, rename ByHand
+
+  val nfib_j1: FUT = ByHandJava.nfib_v1(_)
+  val nfib_j2: FUT = ByHandJava.nfib_v2(_)
 
   val nfib_i: FUT = (x: Long) => {
     def prog = Lang.Examples.nfibProgram(x)
@@ -85,18 +92,21 @@ object Speed extends App {
     InterpretK.cps(prog) / 3L
   }
 
-  // map of groups of FUTs
+  // map of groups of FUTs //NICK: split nfib & trip groups
   def m: Map[String, (Option[Double], List[(String, FUT)])] = Map(
-    "nfib" -> (None, List( //baseline for speedy on same example
+    "nfib" -> (None, List( //NICK: add baseline for speedy on same example
       "interpreter-cps" -> nfib_ik,
       "interpreter-boxed" -> nfib_ib,
       "interpreter" -> nfib_i,
-      "native" -> nfib_n,
+      "byhand-scala" -> nfib_ns,
+      "byhand-java-v1" -> nfib_j1,
+      "byhand-java-v2" -> nfib_j2,
+      //NICK: add version which compiles to bytecode
     )),
     "trip" -> (None, List(
       "interpreter-cps" -> trip_ik,
       "interpreter" -> trip_i,
-      "native" -> trip_n,
+      "byhand" -> trip_n,
     )),
   )
 
@@ -120,10 +130,31 @@ object Speed extends App {
 
   conf match {
 
-    case Conf.PlayGen() =>
+    case Conf.PlayGenBytecode() =>
       val code1 = Play.makeCodeToPrintMessage("Hello, world!")
       code1.dump()
-      code1.run2(55, 13)
+      val res: Long = code1.run2(55, 13)
+      println(s"PlayGenBytecode -> $res")
+
+    case Conf.TryCompileToBytecode() =>
+      import Lang._
+      val prog =
+        Program(
+          defs = Map("subtractFromHundred" -> Sub(Num(100), Arg(0))),
+          main = FnCall("subtractFromHundred", List(Num(13L))),
+        )
+      println(s"TryCompileToBytecode: $prog")
+      val res1 = Interpret.standard(prog)
+      println(s"eval via Interpreter --> $res1")
+
+      val bc: ByteCode = Compiler.compile(prog)
+      bc.dump() //find in /tmp
+      val res2 = bc.run0()
+
+      println(s"eval via Compiled bytecode --> $res2")
+      if (res1 != res2) {
+        sys.error("\n**interpret VS bytecode: result differ")
+      }
 
     case Conf.FixedN(group, version, n) =>
       printHeader()
