@@ -14,6 +14,7 @@ import com.daml.platform.configuration.ServerRole
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 
 import java.sql.Connection
+import java.util.concurrent.locks.LockSupport
 import java.util.concurrent.{Executor, Executors, TimeUnit}
 import javax.sql.DataSource
 import scala.concurrent.duration.FiniteDuration
@@ -66,9 +67,10 @@ private[appendonlydao] final class DbDispatcherImpl private[appendonlydao] (
         } catch {
           case throwable: Throwable => handleError(throwable)
         } finally {
-          val elapsed = System.nanoTime() - startExec
-          val targetTime = Random.between(1000000, 2000000)
-          if (elapsed < targetTime) Thread.sleep(targetTime / 1000000L, targetTime % 1000000)
+          import scala.concurrent.duration._
+          val elapsed = (System.nanoTime() - startExec).nanos
+          val targetTime = Random.between(2, 5).millis
+          LockSupport.parkNanos((targetTime - elapsed).toNanos)
           updateMetrics(databaseMetrics, startExec)
         }
       }(executionContext)
