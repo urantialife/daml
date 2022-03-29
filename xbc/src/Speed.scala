@@ -123,7 +123,7 @@ object Speed extends App {
     case Conf.PlayGen() =>
       val code1 = Play.makeCodeToPrintMessage("Hello, world!")
       code1.dump()
-      code1.run1(13)
+      code1.run2(55, 13)
 
     case Conf.FixedN(group, version, n) =>
       printHeader()

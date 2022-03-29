@@ -23,7 +23,7 @@ object Play { // Play with bytecode generation using Asm
     cw.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
 
     val mv: MethodVisitor =
-      cw.visitMethod(ACC_PUBLIC | ACC_STATIC, methodName, "(J)V", null, null)
+      cw.visitMethod(ACC_PUBLIC | ACC_STATIC, methodName, "(JJ)V", null, null)
 
     mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
     mv.visitLdcInsn(message)
@@ -39,9 +39,11 @@ object Play { // Play with bytecode generation using Asm
 
     mv.visitFieldInsn(GETSTATIC, "xbc/Bucket$", "MODULE$", "Lxbc/Bucket$;")
 
-    mv.visitLdcInsn(100L)
+    mv.visitLdcInsn(1000L)
     mv.visitIntInsn(LLOAD, 0)
-    mv.visitInsn(LADD) //100+arg0
+    mv.visitIntInsn(LLOAD, 2)
+    mv.visitInsn(LSUB)
+    mv.visitInsn(LADD) //1000 + (firstLongArg - secondLongArg)
 
     mv.visitMethodInsn(
       INVOKEVIRTUAL,
