@@ -3,7 +3,18 @@
 
 package xbc
 
+import java.io.FileOutputStream
+
 final class ByteCode(className: String, methodName: String, bytes: Array[Byte]) {
+
+  def dump() = {
+    val base = "/tmp/"
+    val path = base + className + ".class"
+    val f = new FileOutputStream(path)
+    println(s"generating $path, #${bytes.length} bytes")
+    f.write(bytes)
+  }
+
   def run(): Unit = {
     // load and invoke some (perhaps dynamically generated) bytecode
     case object MyClassLoader extends ClassLoader {
