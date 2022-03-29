@@ -7,8 +7,11 @@ import org.objectweb.asm._
 import org.objectweb.asm.Opcodes._
 
 object Bucket {
-  def myInt2String(x: Long) = {
-    s"myInt2String[$x]"
+  def myLong2String(x: Long) = {
+    s"myLong2String[$x]"
+  }
+  def mySubtract(x: Long, y: Long) = {
+    x - y
   }
 }
 
@@ -25,6 +28,7 @@ object Play { // Play with bytecode generation using Asm
     val mv: MethodVisitor =
       cw.visitMethod(ACC_PUBLIC | ACC_STATIC, methodName, "(JJ)V", null, null)
 
+    // print(message)
     mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
     mv.visitLdcInsn(message)
     mv.visitMethodInsn(
@@ -35,24 +39,24 @@ object Play { // Play with bytecode generation using Asm
       false,
     )
 
+    // print(myLong2String(1000 + mySubtract(firstLongArg - secondLongArg, 1)))
     mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
-
     mv.visitFieldInsn(GETSTATIC, "xbc/Bucket$", "MODULE$", "Lxbc/Bucket$;")
-
     mv.visitLdcInsn(1000L)
+    mv.visitFieldInsn(GETSTATIC, "xbc/Bucket$", "MODULE$", "Lxbc/Bucket$;")
     mv.visitIntInsn(LLOAD, 0)
     mv.visitIntInsn(LLOAD, 2)
     mv.visitInsn(LSUB)
-    mv.visitInsn(LADD) //1000 + (firstLongArg - secondLongArg)
-
+    mv.visitLdcInsn(1L)
+    mv.visitMethodInsn(INVOKEVIRTUAL, "xbc/Bucket$", "mySubtract", "(JJ)J", false)
+    mv.visitInsn(LADD)
     mv.visitMethodInsn(
       INVOKEVIRTUAL,
       "xbc/Bucket$",
-      "myInt2String",
+      "myLong2String",
       "(J)Ljava/lang/String;",
       false,
     )
-
     mv.visitMethodInsn(
       INVOKEVIRTUAL,
       "java/io/PrintStream",
