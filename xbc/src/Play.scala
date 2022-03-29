@@ -21,8 +21,9 @@ object Play { // Play with bytecode generation using Asm
 
     val cw: ClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
     cw.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
+
     val mv: MethodVisitor =
-      cw.visitMethod(ACC_PUBLIC | ACC_STATIC, methodName, "()V", null, null)
+      cw.visitMethod(ACC_PUBLIC | ACC_STATIC, methodName, "(J)V", null, null)
 
     mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
     mv.visitLdcInsn(message)
@@ -38,9 +39,9 @@ object Play { // Play with bytecode generation using Asm
 
     mv.visitFieldInsn(GETSTATIC, "xbc/Bucket$", "MODULE$", "Lxbc/Bucket$;")
 
-    mv.visitLdcInsn(123L)
-    mv.visitLdcInsn(42L)
-    mv.visitInsn(LADD)
+    mv.visitLdcInsn(100L)
+    mv.visitIntInsn(LLOAD, 0)
+    mv.visitInsn(LADD) //100+arg0
 
     mv.visitMethodInsn(
       INVOKEVIRTUAL,

@@ -15,16 +15,26 @@ final class ByteCode(className: String, methodName: String, bytes: Array[Byte]) 
     f.write(bytes)
   }
 
-  def run(): Unit = {
-    // load and invoke some (perhaps dynamically generated) bytecode
-    case object MyClassLoader extends ClassLoader {
-      override def findClass(name: String): Class[_] = {
-        defineClass(name, bytes, 0, bytes.length)
-      }
+  // load and invoke some (perhaps dynamically generated) bytecode
+  case object MyClassLoader extends ClassLoader {
+    override def findClass(name: String): Class[_] = {
+      defineClass(name, bytes, 0, bytes.length)
     }
+  }
+
+  def run0(): Unit = { // run bytecode with 0 args
     val aClass = MyClassLoader.loadClass(className)
     val method = aClass.getMethod(methodName)
     val _ = method.invoke(null)
     ()
   }
+
+  def run1(arg1: Long): Unit = { // run bytecode with 1 long arg
+    val aClass = MyClassLoader.loadClass(className)
+    val argType: Class[_] = classOf[Long]
+    val method = aClass.getMethod(methodName, argType)
+    val _ = method.invoke(null, arg1)
+    ()
+  }
+
 }
