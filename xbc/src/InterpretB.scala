@@ -26,8 +26,9 @@ object InterpretB { // interpreter for Lang, producing boxed values
                 if (BoxedValue.isNotZero(eval(e1))) eval(e2) else eval(e3)
               case Arg(i) => actuals(i)
               case FnCall(fnName, args) =>
-                defs.get(fnName) match {
-                  case None => sys.error(s"FnCall: $fnName")
+                val arity = args.length
+                defs.get(fnName, arity) match {
+                  case None => sys.error(s"FnCall: $fnName/$arity")
                   case Some(body) =>
                     val vs = args.map(eval(_)).toVector
                     nested_evalFrame(vs, body)
@@ -38,8 +39,9 @@ object InterpretB { // interpreter for Lang, producing boxed values
             case IfNot0(e1, e2, e3) =>
               if (BoxedValue.isNotZero(eval(e1))) evalFrame(actuals, e2) else evalFrame(actuals, e3)
             case FnCall(fnName, args) =>
-              defs.get(fnName) match {
-                case None => sys.error(s"FnCall: $fnName")
+              val arity = args.length
+              defs.get(fnName, arity) match {
+                case None => sys.error(s"FnCall: $fnName/$arity")
                 case Some(body) =>
                   val vs = args.map(eval(_)).toVector
                   evalFrame(vs, body) //tailcall
@@ -55,6 +57,7 @@ object InterpretB { // interpreter for Lang, producing boxed values
 
   def applyBinOp(binOp: BinOp, v1: Value, v2: Value): Value = {
     binOp match {
+      case MulOp => BoxedValue.mul(v1, v2)
       case AddOp => BoxedValue.add(v1, v2)
       case SubOp => BoxedValue.sub(v1, v2)
       case LessOp => BoxedValue.less(v1, v2)

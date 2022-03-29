@@ -23,6 +23,7 @@ object Compiler { // compiler from Lang to ByteCode
 
       def compileBinOp(binOp: BinOp): Unit = {
         binOp match {
+          case MulOp => mv.visitInsn(LMUL)
           case AddOp => mv.visitInsn(LADD)
           case SubOp => mv.visitInsn(LSUB)
           case LessOp => ??? //if (v1 < v2) 1 else 0 //NICK: todo
@@ -52,11 +53,13 @@ object Compiler { // compiler from Lang to ByteCode
             args.foreach { arg =>
               compileExp(arg)
             }
+            val arity = args.length
+            val argTypes = List.fill(arity)('J').mkString
             mv.visitMethodInsn(
               INVOKESTATIC,
               className,
               subMethodName,
-              "(J)J", //NICK: fix based on #args passed
+              s"($argTypes)J",
               false,
             )
         }
@@ -66,14 +69,14 @@ object Compiler { // compiler from Lang to ByteCode
       mv.visitMaxs(-1, -1)
     }
 
-    def compileDef(fnName: FnName, body: Exp): Unit = {
-      //println(s"compileDef: $fnName = $body")
+    def compileDef(fnName: FnName, arity: Int, body: Exp): Unit = {
       val subMethodName = "my_" + fnName
+      val argTypes = List.fill(arity)('J').mkString
       val mv: MethodVisitor =
         cw.visitMethod(
           ACC_PUBLIC | ACC_STATIC,
           subMethodName,
-          "(J)J", //NICK: fix given arity of definition
+          s"($argTypes)J",
           null,
           null,
         )
@@ -83,7 +86,6 @@ object Compiler { // compiler from Lang to ByteCode
     val entryMethodName = "startHere"
 
     def compileMain(main: Exp): Unit = {
-      //println(s"compiling main = $main")
       val mv: MethodVisitor =
         cw.visitMethod(ACC_PUBLIC | ACC_STATIC, entryMethodName, "()J", null, null)
       compileMethod(mv, main)
@@ -91,8 +93,8 @@ object Compiler { // compiler from Lang to ByteCode
 
     program match {
       case Program(defs, main) =>
-        defs.foreach { case (name, body) =>
-          compileDef(name, body)
+        defs.foreach { case ((name, arity), body) =>
+          compileDef(name, arity, body)
         }
         compileMain(main)
     }

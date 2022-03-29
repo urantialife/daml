@@ -26,8 +26,9 @@ object Interpret { // basic interpreter for Lang
               case IfNot0(e1, e2, e3) => if (eval(e1) != 0) eval(e2) else eval(e3)
               case Arg(i) => actuals(i)
               case FnCall(fnName, args) =>
-                defs.get(fnName) match {
-                  case None => sys.error(s"FnCall: $fnName")
+                val arity = args.length
+                defs.get(fnName, arity) match {
+                  case None => sys.error(s"FnCall: $fnName/$arity")
                   case Some(body) =>
                     val vs = args.map(eval(_)).toVector
                     nested_evalFrame(vs, body)
@@ -38,8 +39,9 @@ object Interpret { // basic interpreter for Lang
             case IfNot0(e1, e2, e3) =>
               if (eval(e1) != 0) evalFrame(actuals, e2) else evalFrame(actuals, e3)
             case FnCall(fnName, args) =>
-              defs.get(fnName) match {
-                case None => sys.error(s"FnCall: $fnName")
+              val arity = args.length
+              defs.get(fnName, arity) match {
+                case None => sys.error(s"FnCall: $fnName/$arity")
                 case Some(body) =>
                   val vs = args.map(eval(_)).toVector
                   evalFrame(vs, body) //tailcall
@@ -55,6 +57,7 @@ object Interpret { // basic interpreter for Lang
 
   def applyBinOp(binOp: BinOp, v1: Value, v2: Value): Value = {
     binOp match {
+      case MulOp => v1 * v2
       case AddOp => v1 + v2
       case SubOp => v1 - v2
       case LessOp => if (v1 < v2) 1 else 0

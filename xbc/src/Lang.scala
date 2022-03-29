@@ -8,6 +8,7 @@ object Lang {
   type FnName = String
 
   sealed abstract class BinOp
+  final case object MulOp extends BinOp
   final case object AddOp extends BinOp
   final case object SubOp extends BinOp
   final case object LessOp extends BinOp
@@ -19,8 +20,9 @@ object Lang {
   final case class Arg(i: Int) extends Exp
   final case class FnCall(f: FnName, arg: List[Exp]) extends Exp
 
-  case class Program(defs: Map[FnName, Exp], main: Exp)
+  case class Program(defs: Map[(FnName, Int), Exp], main: Exp)
 
+  def Mul(e1: Exp, e2: Exp): Exp = Builtin(MulOp, e1, e2)
   def Add(e1: Exp, e2: Exp): Exp = Builtin(AddOp, e1, e2)
   def Sub(e1: Exp, e2: Exp): Exp = Builtin(SubOp, e1, e2)
   def Less(e1: Exp, e2: Exp): Exp = Builtin(LessOp, e1, e2)
@@ -38,7 +40,7 @@ object Lang {
         )
       }
       Program(
-        defs = Map("nfib" -> body),
+        defs = Map(("nfib", 1) -> body),
         main = nfib(Num(size)),
       )
     }
@@ -54,7 +56,7 @@ object Lang {
         )
       }
       Program(
-        defs = Map("loop" -> body),
+        defs = Map(("loop", 3) -> body),
         main = loop(Num(3L), Num(0L), Num(i)),
       )
     }

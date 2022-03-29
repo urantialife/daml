@@ -43,8 +43,9 @@ object InterpretK { // cps-style interpreter for Lang (for stack-safety)
                 case Arg(i) => loop(Up(actuals(i)), k)
                 case IfNot0(e1, e2, e3) => loop(Down(actuals, e1), KIf(actuals, e2, e3, k))
                 case FnCall(fnName, args) =>
-                  defs.get(fnName) match {
-                    case None => sys.error(s"FnCall: $fnName")
+                  val arity = args.length
+                  defs.get(fnName, arity) match {
+                    case None => sys.error(s"FnCall: $fnName/$arity")
                     case Some(body) =>
                       args match {
                         case Nil =>
@@ -80,6 +81,7 @@ object InterpretK { // cps-style interpreter for Lang (for stack-safety)
 
   def applyBinOp(binOp: BinOp, v1: Value, v2: Value): Value = {
     binOp match {
+      case MulOp => v1 * v2
       case AddOp => v1 + v2
       case SubOp => v1 - v2
       case LessOp => if (v1 < v2) 1 else 0

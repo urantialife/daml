@@ -10,6 +10,13 @@ object BoxedValue {
   final case class Number(x: Long) extends BoxedValue
   final case class String(s: String) extends BoxedValue
 
+  def mul(v1: BoxedValue, v2: BoxedValue): BoxedValue = {
+    (v1, v2) match {
+      case (Number(x1), Number(x2)) => Number(x1 * x2)
+      case _ => sys.error("BoxedValue.mul")
+    }
+  }
+
   def add(v1: BoxedValue, v2: BoxedValue): BoxedValue = {
     (v1, v2) match {
       case (Number(x1), Number(x2)) => Number(x1 + x2)

@@ -144,8 +144,14 @@ object Speed extends App {
       import Lang._
       val prog =
         Program(
-          defs = Map("subtractFromHundred" -> Sub(Num(100), Arg(0))),
-          main = FnCall("subtractFromHundred", List(Num(13L))),
+          defs = Map(
+            ("square", 1) -> Mul(Arg(0), Arg(0)),
+            ("foo", 2) -> Sub(
+              FnCall("square", List(Arg(0))),
+              FnCall("square", List(Arg(1))),
+            ),
+          ),
+          main = FnCall("foo", List(Num(10L), Num(7L))),
         )
       println(s"TryCompileToBytecode: $prog")
       val res1 = Interpret.standard(prog)
