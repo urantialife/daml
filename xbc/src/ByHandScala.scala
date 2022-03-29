@@ -6,15 +6,15 @@ package xbc
 import scala.annotation.tailrec
 
 // Examples writen natively in scala
-object Native {
+object ByHandScala {
 
-  def nfibRecursive(n: Long): Long = {
+  def nfib(n: Long): Long = {
     // Not quite the fib function, as here we +1 in the recursive case.
     // So the function result is equal to the number of function calls.
     if (n < 2) {
       1
     } else {
-      nfibRecursive(n - 1) + nfibRecursive(n - 2) + 1
+      nfib(n - 1) + nfib(n - 2) + 1
     }
   }
 

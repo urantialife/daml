@@ -1,35 +1,35 @@
-Classfile /home/nic/daml/tmp/xbc/Native$.class
-  Last modified Jan 1, 2010; size 936 bytes
-  MD5 checksum 6d7df9666c971b94cc4f75b21ed33420
-  Compiled from "Native.scala"
-public final class xbc.Native$
+Classfile /home/nic/daml/tmp/xbc/ByHandScala$.class
+  Last modified Jan 1, 2010; size 942 bytes
+  MD5 checksum 18778ac8ccc8ba32c12291cd2531f452
+  Compiled from "ByHandScala.scala"
+public final class xbc.ByHandScala$
   minor version: 0
   major version: 52
   flags: (0x0031) ACC_PUBLIC, ACC_FINAL, ACC_SUPER
-  this_class: #2                          // xbc/Native$
+  this_class: #2                          // xbc/ByHandScala$
   super_class: #4                         // java/lang/Object
   interfaces: 0, fields: 1, methods: 5, attributes: 3
 Constant pool:
-   #1 = Utf8               xbc/Native$
-   #2 = Class              #1             // xbc/Native$
+   #1 = Utf8               xbc/ByHandScala$
+   #2 = Class              #1             // xbc/ByHandScala$
    #3 = Utf8               java/lang/Object
    #4 = Class              #3             // java/lang/Object
-   #5 = Utf8               Native.scala
+   #5 = Utf8               ByHandScala.scala
    #6 = Utf8               MODULE$
-   #7 = Utf8               Lxbc/Native$;
+   #7 = Utf8               Lxbc/ByHandScala$;
    #8 = Utf8               <clinit>
    #9 = Utf8               ()V
   #10 = Utf8               <init>
   #11 = NameAndType        #10:#9         // "<init>":()V
-  #12 = Methodref          #2.#11         // xbc/Native$."<init>":()V
-  #13 = NameAndType        #6:#7          // MODULE$:Lxbc/Native$;
-  #14 = Fieldref           #2.#13         // xbc/Native$.MODULE$:Lxbc/Native$;
-  #15 = Utf8               nfibRecursive
+  #12 = Methodref          #2.#11         // xbc/ByHandScala$."<init>":()V
+  #13 = NameAndType        #6:#7          // MODULE$:Lxbc/ByHandScala$;
+  #14 = Fieldref           #2.#13         // xbc/ByHandScala$.MODULE$:Lxbc/ByHandScala$;
+  #15 = Utf8               nfib
   #16 = Utf8               (J)J
   #17 = Utf8               n
   #18 = Long               2l
-  #20 = NameAndType        #15:#16        // nfibRecursive:(J)J
-  #21 = Methodref          #2.#20         // xbc/Native$.nfibRecursive:(J)J
+  #20 = NameAndType        #15:#16        // nfib:(J)J
+  #21 = Methodref          #2.#20         // xbc/ByHandScala$.nfib:(J)J
   #22 = Utf8               this
   #23 = Utf8               J
   #24 = Utf8               tripLoop
@@ -40,7 +40,7 @@ Constant pool:
   #29 = Utf8               trip
   #30 = Long               3l
   #32 = NameAndType        #24:#25        // tripLoop:(JJJ)J
-  #33 = Methodref          #2.#32         // xbc/Native$.tripLoop:(JJJ)J
+  #33 = Methodref          #2.#32         // xbc/ByHandScala$.tripLoop:(JJJ)J
   #34 = Methodref          #4.#11         // java/lang/Object."<init>":()V
   #35 = Utf8               Code
   #36 = Utf8               LineNumberTable
@@ -51,8 +51,8 @@ Constant pool:
   #41 = Utf8               ScalaInlineInfo
   #42 = Utf8               Scala
 {
-  public static final xbc.Native$ MODULE$;
-    descriptor: Lxbc/Native$;
+  public static final xbc.ByHandScala$ MODULE$;
+    descriptor: Lxbc/ByHandScala$;
     flags: (0x0019) ACC_PUBLIC, ACC_STATIC, ACC_FINAL
 
   public static {};
@@ -60,15 +60,15 @@ Constant pool:
     flags: (0x0009) ACC_PUBLIC, ACC_STATIC
     Code:
       stack=2, locals=0, args_size=0
-         0: new           #2                  // class xbc/Native$
+         0: new           #2                  // class xbc/ByHandScala$
          3: dup
          4: invokespecial #12                 // Method "<init>":()V
-         7: putstatic     #14                 // Field MODULE$:Lxbc/Native$;
+         7: putstatic     #14                 // Field MODULE$:Lxbc/ByHandScala$;
         10: return
       LineNumberTable:
         line 9: 0
 
-  public long nfibRecursive(long);
+  public long nfib(long);
     descriptor: (J)J
     flags: (0x0001) ACC_PUBLIC
     Code:
@@ -83,12 +83,12 @@ Constant pool:
         13: lload_1
         14: lconst_1
         15: lsub
-        16: invokevirtual #21                 // Method nfibRecursive:(J)J
+        16: invokevirtual #21                 // Method nfib:(J)J
         19: aload_0
         20: lload_1
         21: ldc2_w        #18                 // long 2l
         24: lsub
-        25: invokevirtual #21                 // Method nfibRecursive:(J)J
+        25: invokevirtual #21                 // Method nfib:(J)J
         28: ladd
         29: lconst_1
         30: ladd
@@ -103,7 +103,7 @@ Constant pool:
         line 17: 12
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0      32     0  this   Lxbc/Native$;
+            0      32     0  this   Lxbc/ByHandScala$;
             0      32     1     n   J
     MethodParameters:
       Name                           Flags
@@ -142,7 +142,7 @@ Constant pool:
         line 25: 11
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0      27     0  this   Lxbc/Native$;
+            0      27     0  this   Lxbc/ByHandScala$;
             0      27     1  step   J
             0      27     3   acc   J
             0      27     5     i   J
@@ -171,13 +171,13 @@ Constant pool:
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
             4       7     3  step   J
-            0      12     0  this   Lxbc/Native$;
+            0      12     0  this   Lxbc/ByHandScala$;
             0      12     1     i   J
     MethodParameters:
       Name                           Flags
       i                              final
 
-  private xbc.Native$();
+  private xbc.ByHandScala$();
     descriptor: ()V
     flags: (0x0002) ACC_PRIVATE
     Code:
@@ -189,9 +189,9 @@ Constant pool:
         line 9: 0
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0       5     0  this   Lxbc/Native$;
+            0       5     0  this   Lxbc/ByHandScala$;
 }
-SourceFile: "Native.scala"
+SourceFile: "ByHandScala.scala"
   ScalaInlineInfo: length = 0x18 (unknown attribute)
    01 01 00 04 00 0A 00 09 01 00 0F 00 10 01 00 1D
    00 10 01 00 18 00 19 01

@@ -7,10 +7,11 @@ set -euo pipefail
 # expect to be run from root of repo
 
 t=tmp # fixed temp dir local to invoking dir, it'll do!
+rm -rf $t
 
 repo=/home/nic/daml #discover automtically from here
 jar=$repo/bazel-bin/xbc/xbc.jar
-class=xbc/Native$.class
+class=xbc/ByHandScala$.class
 
 mkdir $t
 (cd $t; cat $jar | jar -x $class)

@@ -51,63 +51,67 @@ object Speed extends App {
   // - the computational effort should scale exponentially with the input N
   // - the result should be indicative of the computation effort
 
-  val nfib_ns: FUT = Native.nfibRecursive(_) //NICK, rename ByHand
+  val nfibVersions: List[(String, FUT)] = {
 
-  val nfib_j1: FUT = ByHandJava.nfib_v1(_)
-  val nfib_j2: FUT = ByHandJava.nfib_v2(_)
-
-  val nfib_i: FUT = (x: Long) => {
-    def prog = Lang.Examples.nfibProgram(x)
-    Interpret.standard(prog)
-  }
-
-  val nfib_ib: FUT = (x: Long) => {
-    def prog = Lang.Examples.nfibProgram(x)
-    val box = InterpretB.run(prog)
-    BoxedValue.getNumber(box) match {
-      case None => sys.error(s"\n**nfib_ib, expected number, got: box")
-      case Some(x) => x
+    val interpreter: FUT = (x: Long) => {
+      def prog = Lang.Examples.nfibProgram(x)
+      Interpret.standard(prog)
     }
-  }
+    val interpreter_boxed: FUT = (x: Long) => {
+      def prog = Lang.Examples.nfibProgram(x)
+      val box = InterpretB.run(prog)
+      BoxedValue.getNumber(box) match {
+        case None => sys.error(s"\n**nfib_ib, expected number, got: box")
+        case Some(x) => x
+      }
+    }
+    val interpreter_cps: FUT = (x: Long) => {
+      def prog = Lang.Examples.nfibProgram(x)
+      InterpretK.cps(prog)
+    }
 
-  val nfib_ik: FUT = (x: Long) => {
-    def prog = Lang.Examples.nfibProgram(x)
-    InterpretK.cps(prog)
-  }
+    val scala: FUT = ByHandScala.nfib(_)
+    val java1: FUT = ByHandJava.nfib_v1(_)
+    val java2: FUT = ByHandJava.nfib_v2(_)
 
-  val trip_n: FUT = (x: Long) => {
-    val y = lpower(2, x) // make it scalable
-    Native.trip(y) / 3L
-  }
-
-  val trip_i: FUT = (x: Long) => {
-    val y = lpower(2, x)
-    def prog = Lang.Examples.tripProgram(y)
-    Interpret.standard(prog) / 3L
-  }
-
-  val trip_ik: FUT = (x: Long) => {
-    val y = lpower(2, x)
-    def prog = Lang.Examples.tripProgram(y)
-    InterpretK.cps(prog) / 3L
-  }
-
-  // map of groups of FUTs //NICK: split nfib & trip groups
-  def m: Map[String, (Option[Double], List[(String, FUT)])] = Map(
-    "nfib" -> (None, List( //NICK: add baseline for speedy on same example
-      "interpreter-cps" -> nfib_ik,
-      "interpreter-boxed" -> nfib_ib,
-      "interpreter" -> nfib_i,
-      "byhand-scala" -> nfib_ns,
-      "byhand-java-v1" -> nfib_j1,
-      "byhand-java-v2" -> nfib_j2,
+    List(
+      //NICK: add baseline for speedy on same example
+      "interpreter-cps" -> interpreter_cps,
+      "interpreter-boxed" -> interpreter_boxed,
+      "interpreter" -> interpreter,
+      "byhand-scala" -> scala,
+      "byhand-java-v1" -> java1,
+      "byhand-java-v2" -> java2,
       //NICK: add version which compiles to bytecode
-    )),
-    "trip" -> (None, List(
-      "interpreter-cps" -> trip_ik,
-      "interpreter" -> trip_i,
-      "byhand" -> trip_n,
-    )),
+    )
+  }
+
+  val tripVersions: List[(String, FUT)] = {
+    val interpreter: FUT = (x: Long) => {
+      val y = lpower(2, x)
+      def prog = Lang.Examples.tripProgram(y)
+      Interpret.standard(prog) / 3L
+    }
+    val interpreter_cps: FUT = (x: Long) => {
+      val y = lpower(2, x)
+      def prog = Lang.Examples.tripProgram(y)
+      InterpretK.cps(prog) / 3L
+    }
+    val scala: FUT = (x: Long) => {
+      val y = lpower(2, x) // make it scalable
+      ByHandScala.trip(y) / 3L
+    }
+    List(
+      "interpreter-cps" -> interpreter_cps,
+      "interpreter" -> interpreter,
+      "byhand-scala" -> scala,
+    )
+  }
+
+  // map of groups of FUTs
+  def m: Map[String, (Option[Double], List[(String, FUT)])] = Map(
+    "nfib" -> (None, nfibVersions),
+    "trip" -> (None, tripVersions),
   )
 
   def getVersions(group: String): (Option[Double], List[String]) = {
