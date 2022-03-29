@@ -1,6 +1,6 @@
 Classfile /home/nic/daml/tmp/xbc/Native$.class
-  Last modified Jan 1, 2010; size 935 bytes
-  MD5 checksum 82cec9d5f5b68710c84b9faecbe47bb4
+  Last modified Jan 1, 2010; size 936 bytes
+  MD5 checksum 6d7df9666c971b94cc4f75b21ed33420
   Compiled from "Native.scala"
 public final class xbc.Native$
   minor version: 0
@@ -24,12 +24,12 @@ Constant pool:
   #12 = Methodref          #2.#11         // xbc/Native$."<init>":()V
   #13 = NameAndType        #6:#7          // MODULE$:Lxbc/Native$;
   #14 = Fieldref           #2.#13         // xbc/Native$.MODULE$:Lxbc/Native$;
-  #15 = Utf8               nfibRecurive
+  #15 = Utf8               nfibRecursive
   #16 = Utf8               (J)J
   #17 = Utf8               n
   #18 = Long               2l
-  #20 = NameAndType        #15:#16        // nfibRecurive:(J)J
-  #21 = Methodref          #2.#20         // xbc/Native$.nfibRecurive:(J)J
+  #20 = NameAndType        #15:#16        // nfibRecursive:(J)J
+  #21 = Methodref          #2.#20         // xbc/Native$.nfibRecursive:(J)J
   #22 = Utf8               this
   #23 = Utf8               J
   #24 = Utf8               tripLoop
@@ -68,7 +68,7 @@ Constant pool:
       LineNumberTable:
         line 9: 0
 
-  public long nfibRecurive(long);
+  public long nfibRecursive(long);
     descriptor: (J)J
     flags: (0x0001) ACC_PUBLIC
     Code:
@@ -83,12 +83,12 @@ Constant pool:
         13: lload_1
         14: lconst_1
         15: lsub
-        16: invokevirtual #21                 // Method nfibRecurive:(J)J
+        16: invokevirtual #21                 // Method nfibRecursive:(J)J
         19: aload_0
         20: lload_1
         21: ldc2_w        #18                 // long 2l
         24: lsub
-        25: invokevirtual #21                 // Method nfibRecurive:(J)J
+        25: invokevirtual #21                 // Method nfibRecursive:(J)J
         28: ladd
         29: lconst_1
         30: ladd
