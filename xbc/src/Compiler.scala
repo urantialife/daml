@@ -26,7 +26,7 @@ object Compiler { // compiler from Lang to ByteCode
           case MulOp => mv.visitInsn(LMUL)
           case AddOp => mv.visitInsn(LADD)
           case SubOp => mv.visitInsn(LSUB)
-          case LessOp => ??? //if (v1 < v2) 1 else 0 //NICK: todo
+          case CmpOp => mv.visitInsn(LCMP)
         }
       }
 
@@ -41,7 +41,16 @@ object Compiler { // compiler from Lang to ByteCode
             compileExp(e2)
             compileBinOp(binOp)
 
-          case IfNot0(_, _, _) => ???
+          case IfNeg(e1, e2, e3) =>
+            val labElse = new Label()
+            val labJoin = new Label()
+            compileExp(e1)
+            mv.visitJumpInsn(IFGE, labElse)
+            compileExp(e2)
+            mv.visitJumpInsn(GOTO, labJoin)
+            mv.visitLabel(labElse)
+            compileExp(e3)
+            mv.visitLabel(labJoin)
 
           case Arg(i) =>
             // compute assuming we are a static method, and all args are long

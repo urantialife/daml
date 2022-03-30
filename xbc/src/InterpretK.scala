@@ -41,7 +41,7 @@ object InterpretK { // cps-style interpreter for Lang (for stack-safety)
                 case Num(x) => loop(Up(x), k)
                 case Builtin(b, e1, e2) => loop(Down(actuals, e1), KBin1(b, actuals, e2, k))
                 case Arg(i) => loop(Up(actuals(i)), k)
-                case IfNot0(e1, e2, e3) => loop(Down(actuals, e1), KIf(actuals, e2, e3, k))
+                case IfNeg(e1, e2, e3) => loop(Down(actuals, e1), KIf(actuals, e2, e3, k))
                 case FnCall(fnName, args) =>
                   val arity = args.length
                   defs.get(fnName, arity) match {
@@ -61,7 +61,7 @@ object InterpretK { // cps-style interpreter for Lang (for stack-safety)
                 case KBin1(b, actuals, e2, k) => loop(Down(actuals, e2), KBin2(b, res, k))
                 case KBin2(b, res1, k) => loop(Up(applyBinOp(b, res1, res)), k)
                 case KIf(actuals, e2, e3, k) =>
-                  if (res != 0) loop(Down(actuals, e2), k) else loop(Down(actuals, e3), k)
+                  if (res < 0) loop(Down(actuals, e2), k) else loop(Down(actuals, e3), k)
                 case KMoreArgs(actuals, results0, args, body, k) =>
                   val results = res :: results0
                   args match {
@@ -84,7 +84,7 @@ object InterpretK { // cps-style interpreter for Lang (for stack-safety)
       case MulOp => v1 * v2
       case AddOp => v1 + v2
       case SubOp => v1 - v2
-      case LessOp => if (v1 < v2) 1 else 0
+      case CmpOp => if (v1 > v2) 1 else if (v1 == v2) 0 else -1
     }
   }
 

@@ -31,17 +31,17 @@ object BoxedValue {
     }
   }
 
-  def less(v1: BoxedValue, v2: BoxedValue): BoxedValue = {
+  def cmp(v1: BoxedValue, v2: BoxedValue): BoxedValue = {
     (v1, v2) match {
-      case (Number(x1), Number(x2)) => Number(if (x1 < x2) 1 else 0)
-      case _ => sys.error("BoxedValue.less")
+      case (Number(x1), Number(x2)) => Number(if (x1 > x2) 1 else if (x1 == x2) 0 else -1)
+      case _ => sys.error("BoxedValue.cmp")
     }
   }
 
-  def isNotZero(v: BoxedValue): Boolean = {
+  def isNeg(v: BoxedValue): Boolean = {
     v match {
-      case Number(x) => x != 0
-      case _ => sys.error("BoxedValue.isNotZero")
+      case Number(x) => x < 0
+      case _ => sys.error("BoxedValue.isNeg")
     }
   }
 

@@ -19,8 +19,9 @@ object Speed extends App {
       case "hs" => "byhand-scala"
       case "hj" => "byhand-java-v2"
       case "i" => "interpreter"
-      case "ib" => "interpreter-boxed"
+      case "iv" => "interpreter-boxed-value"
       case "ik" => "interpreter-cps"
+      case "c" => "compiled-via-bytecode"
       case s => s
     }
     //val defaultConf = Conf.WholeGroup("nfib")
@@ -57,7 +58,7 @@ object Speed extends App {
       def prog = Lang.Examples.nfibProgram(x)
       Interpret.standard(prog)
     }
-    val interpreter_boxed: FUT = (x: Long) => {
+    val interpreter_boxed_value: FUT = (x: Long) => {
       def prog = Lang.Examples.nfibProgram(x)
       val box = InterpretB.run(prog)
       BoxedValue.getNumber(box) match {
@@ -74,15 +75,26 @@ object Speed extends App {
     val java1: FUT = ByHandJava.nfib_v1(_)
     val java2: FUT = ByHandJava.nfib_v2(_)
 
+    val compiled1: FUT = (x: Long) => {
+      def prog = Lang.Examples.nfibProgram(x)
+      //println("compile...")
+      val bc: ByteCode = Compiler.compile(prog)
+      //println("dump...")
+      bc.dump() //find in /tmp
+      //println("run...")
+      bc.run0()
+    }
+    val _ = compiled1
+
     List(
       //NICK: add baseline for speedy on same example
       "interpreter-cps" -> interpreter_cps,
-      "interpreter-boxed" -> interpreter_boxed,
+      "interpreter-boxed-value" -> interpreter_boxed_value,
       "interpreter" -> interpreter,
       "byhand-scala" -> scala,
       "byhand-java-v1" -> java1,
       "byhand-java-v2" -> java2,
-      //NICK: add version which compiles to bytecode
+      "compiled-via-bytecode" -> compiled1,
     )
   }
 

@@ -22,8 +22,8 @@ object InterpretB { // interpreter for Lang, producing boxed values
             exp match {
               case Num(x) => BoxedValue.Number(x)
               case Builtin(binOp, e1, e2) => applyBinOp(binOp, eval(e1), eval(e2))
-              case IfNot0(e1, e2, e3) =>
-                if (BoxedValue.isNotZero(eval(e1))) eval(e2) else eval(e3)
+              case IfNeg(e1, e2, e3) =>
+                if (BoxedValue.isNeg(eval(e1))) eval(e2) else eval(e3)
               case Arg(i) => actuals(i)
               case FnCall(fnName, args) =>
                 val arity = args.length
@@ -36,8 +36,8 @@ object InterpretB { // interpreter for Lang, producing boxed values
             }
 
           body match {
-            case IfNot0(e1, e2, e3) =>
-              if (BoxedValue.isNotZero(eval(e1))) evalFrame(actuals, e2) else evalFrame(actuals, e3)
+            case IfNeg(e1, e2, e3) =>
+              if (BoxedValue.isNeg(eval(e1))) evalFrame(actuals, e2) else evalFrame(actuals, e3)
             case FnCall(fnName, args) =>
               val arity = args.length
               defs.get(fnName, arity) match {
@@ -60,7 +60,7 @@ object InterpretB { // interpreter for Lang, producing boxed values
       case MulOp => BoxedValue.mul(v1, v2)
       case AddOp => BoxedValue.add(v1, v2)
       case SubOp => BoxedValue.sub(v1, v2)
-      case LessOp => BoxedValue.less(v1, v2)
+      case CmpOp => BoxedValue.cmp(v1, v2)
     }
   }
 
