@@ -50,7 +50,9 @@ object Play { // Play with bytecode generation using Asm
       false,
     )
 
-    // print(myLong2String(mySquare(100) + mySubtract(firstLongArg - secondLongArg, 1)))
+    /*
+       print(myLong2String(mySquare(100) + mySubtract( ...?:... ,  1)))
+     */
     mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
     mv.visitFieldInsn(GETSTATIC, "xbc/Bucket$", "MODULE$", "Lxbc/Bucket$;")
 
@@ -58,9 +60,28 @@ object Play { // Play with bytecode generation using Asm
     mv.visitMethodInsn(INVOKESTATIC, className, "mySquare", "(J)J", false)
 
     mv.visitFieldInsn(GETSTATIC, "xbc/Bucket$", "MODULE$", "Lxbc/Bucket$;")
+
+    /*
+         (firstLongArg < secondLongArg)
+         ? (secondLongArg - firstLongArg)
+         : (firstLongArg - secondLongArg)
+     */
+    val labElse = new Label()
+    val labJoin = new Label()
+    mv.visitIntInsn(LLOAD, 0)
+    mv.visitIntInsn(LLOAD, 2)
+    mv.visitInsn(LCMP)
+    mv.visitJumpInsn(IFGE, labElse)
+    mv.visitIntInsn(LLOAD, 2)
+    mv.visitIntInsn(LLOAD, 0)
+    mv.visitInsn(LSUB)
+    mv.visitJumpInsn(GOTO, labJoin)
+    mv.visitLabel(labElse)
     mv.visitIntInsn(LLOAD, 0)
     mv.visitIntInsn(LLOAD, 2)
     mv.visitInsn(LSUB)
+    mv.visitLabel(labJoin)
+
     mv.visitLdcInsn(1L)
     mv.visitMethodInsn(INVOKEVIRTUAL, "xbc/Bucket$", "mySubtract", "(JJ)J", false)
     mv.visitInsn(LADD)

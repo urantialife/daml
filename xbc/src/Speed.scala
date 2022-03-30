@@ -137,8 +137,10 @@ object Speed extends App {
     case Conf.PlayGenBytecode() =>
       val code1 = Play.makeCodeToPrintMessage("Hello, world!")
       code1.dump()
-      val res: Long = code1.run2(55, 13)
-      println(s"PlayGenBytecode -> $res")
+      List((55L, 13L), (13L, 55L)).foreach { case (a, b) =>
+        val res: Long = code1.run2(a, b)
+        println(s"PlayGenBytecode($a,$b) -> $res")
+      }
 
     case Conf.TryCompileToBytecode() =>
       import Lang._
