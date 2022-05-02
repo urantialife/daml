@@ -462,6 +462,16 @@ prettyScenarioErrorError (Just err) =  do
               (prettyDefName world)
               scenarioError_ContractDoesNotImplementRequiringInterfaceRequiringInterfaceId
         ]
+    ScenarioErrorErrorStackOverflow so -> pure $ vcat
+      [ "The scenario service had a stack overflow"
+      , label_ "Details:" $
+          ltext so
+      ]
+    ScenarioErrorErrorOutOfMemory oom -> pure $ vcat
+      [ "The scenario service ran out of memory"
+      , label_ "Details:" $
+          ltext oom
+      ]
 
 partyDifference :: V.Vector Party -> V.Vector Party -> Doc SyntaxClass
 partyDifference with without =

@@ -305,6 +305,10 @@ message ScenarioError {
     ContractDoesNotImplementInterface contract_does_not_implement_interface = 35;
     ContractDoesNotImplementRequiringInterface contract_does_not_implement_requiring_interface
     = 36;
+
+    // Errors related to the scenario service itself crashing
+    string stack_overflow = 37;
+    string out_of_memory = 38;
   }
 }
 
