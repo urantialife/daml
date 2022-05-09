@@ -675,6 +675,7 @@ exports_files(["stack.exe"], visibility = ["//visibility:public"])
         ],
         components = {
             "ghcide": ["lib", "exe"],
+            "aeson": ["lib"],
             "attoparsec": [
                 "lib:attoparsec",
                 "lib:attoparsec-internal",
