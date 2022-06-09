@@ -11,8 +11,6 @@ load("//ledger/ledger-api-tests:conformance.bzl", "conformance_test", "generate_
 load("@oracle//:index.bzl", "oracle_tags")
 load("@os_info//:os_info.bzl", "is_windows")
 
-generate_conf("lala", "lalala", "$(rootpath //ledger/test-common/test-certificates:server.crt)")
-
 da_scala_library(
     name = "sandbox-on-x",
     srcs = glob(["src/main/scala/**/*.scala"]),

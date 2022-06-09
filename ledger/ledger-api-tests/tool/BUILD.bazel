@@ -185,6 +185,7 @@ conformance_test(
           }
         }
     """,
+    hocon_srcs = ["//ledger/test-common/test-certificates:server.crt", "//ledger/test-common/test-certificates:ca.crt", "//ledger/test-common/test-certificates:server.pem.enc"],
     lf_versions = lf_version_configuration_versions,
     ports = [6865],
     server = "//ledger/sandbox-on-x:hocon-conformance-test-postgres-bin",
