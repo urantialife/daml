@@ -1073,6 +1073,50 @@ class DecodeV1Spec
       }
     }
 
+    s"Decode interface definitions correctly iff version >= ${LV.Features.interfaces}" in {
+
+      val emptyDefInterface = DamlLf1.DefInterface
+        .newBuilder()
+        .setTyconInternedDname(1)
+        .setParamInternedStr(0)
+        .setPrecond(unitExpr)
+        .build()
+
+      val emptyDefInterfaceScala =
+        GenDefInterface(
+          Set.empty,
+          Ref.IdString.Name.assertFromString("this"),
+          Map(),
+          Map(),
+          EPrimCon(PCUnit),
+          Map(),
+        )
+
+      val interfaceDefTestCases = {
+        Table(
+          "input" -> "expected output",
+          emptyDefInterface -> emptyDefInterfaceScala,
+        )
+      }
+
+      val interfaceName = Ref.DottedName.assertFromString("I")
+
+      val interfaceDefStringTable = ImmArraySeq("this")
+
+      val interfaceDefDottedNameTable =
+        ImmArraySeq("Mod", "T", "I", "J").map(Ref.DottedName.assertFromString)
+
+      val interfaceDefDecoder =
+
+        (version: LV) => moduleDecoder(version, interfaceDefStringTable, interfaceDefDottedNameTable)
+
+      forEveryVersionSuchThat(_ >= LV.Features.interfaces) { version =>
+        forEvery(interfaceDefTestCases) { (proto, scala) =>
+          interfaceDefDecoder(version).decodeDefInterface(interfaceName, proto) shouldBe scala
+        }
+      }
+    }
+
     val interfacePrimitivesDottedNameTable =
       ImmArraySeq("Mod", "T", "I", "J").map(Ref.DottedName.assertFromString)
 
