@@ -177,10 +177,10 @@ conformance_test(
           seeding=testing-weak
           tls {
             enabled=true
-            key-cert-chain-file=$$(rlocation $$TEST_WORKSPACE/$(rootpath //ledger/test-common/test-certificates:server.crt))
-            trust-cert-collection-file=$$(rlocation $$TEST_WORKSPACE/$(rootpath //ledger/test-common/test-certificates:ca.crt))
-            key-file=$$(rlocation $$TEST_WORKSPACE/$(rootpath //ledger/test-common/test-certificates:server.pem.enc))
-            secrets-url=https://raw.githubusercontent.com/digital-asset/daml/main/ledger/test-common/files/server-pem-decryption-parameters.json
+            key-cert-chain-file=$(rootpath //ledger/test-common/test-certificates:server.crt)
+            trust-cert-collection-file=$(rootpath //ledger/test-common/test-certificates:ca.crt)
+            key-file=$(rootpath //ledger/test-common/test-certificates:server.pem.enc)
+            secrets-url="https://raw.githubusercontent.com/digital-asset/daml/main/ledger/test-common/files/server-pem-decryption-parameters.json"
             minimum-server-protocol-version=TLSv1.3
           }
         }
