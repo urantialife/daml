@@ -9,7 +9,7 @@ import com.daml.ledger.api.tls.{SecretsUrl, TlsConfiguration, TlsVersion}
 import com.daml.lf.data.Ref
 import com.daml.lf.engine.EngineConfig
 import com.daml.lf.language.LanguageVersion
-import com.daml.lf.transaction.ContractKeyUniquenessMode
+import com.daml.lf.transaction.ContractKeyUniquenessMode.ContractByKeyUniquenessMode
 import com.daml.lf.{VersionRange, interpretation, language}
 import com.daml.metrics.MetricsReporter
 import com.daml.platform.apiserver.SeedService.Seeding
@@ -82,8 +82,8 @@ object PureConfigReaderWriter {
   implicit val interpretationLimitsConvert: ConfigConvert[interpretation.Limits] =
     deriveConvert[interpretation.Limits]
 
-  implicit val contractKeyUniquenessModeConvert: ConfigConvert[ContractKeyUniquenessMode] =
-    deriveEnumerationConvert[ContractKeyUniquenessMode]
+  implicit val contractByKeyUniquenessModeConvert: ConfigConvert[ContractByKeyUniquenessMode] =
+    deriveEnumerationConvert[ContractByKeyUniquenessMode]
 
   implicit val engineConvert: ConfigConvert[EngineConfig] = deriveConvert[EngineConfig]
 
@@ -99,6 +99,9 @@ object PureConfigReaderWriter {
       case MetricsReporter.Graphite(address, _) => s"graphite://${address.toString}"
       case MetricsReporter.Prometheus(address) => s"prometheus://${address.toString}"
     }
+
+  implicit val metricsRegistryTypeConvert: ConfigConvert[MetricsConfig.MetricRegistryType] =
+    deriveEnumerationConvert[MetricsConfig.MetricRegistryType]
 
   implicit val metricsConvert: ConfigConvert[MetricsConfig] = deriveConvert[MetricsConfig]
 
