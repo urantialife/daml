@@ -22,12 +22,15 @@ def conformance_test(
         lf_versions = ["default"],
         dev_mod_flag = "--daml-lf-dev-mode-unsafe",
         flaky = False,
-        hocon = False):
+        hocon = False,
+        hocon_config = ""):
     for lf_version in lf_versions_aggregate(lf_versions):
         daml_lf_dev_mode_args = ["-C ledger.engine.allowed-language-versions=daml-lf-dev-mode-unsafe"] if hocon else [dev_mod_flag]
         extra_server_args = daml_lf_dev_mode_args if lf_version == lf_version_configuration.get("preview") or lf_version == lf_version_configuration.get("dev") else []
         if not is_windows:
             test_name = "-".join([name, lf_version])
+            hocon_conf_file_name = test_name + ".conf"
+            generate_conf("generate-" + test_name, hocon_conf_file_name, content = hocon_config)
             client_server_test(
                 name = test_name,
                 runner = runner,
@@ -35,9 +38,9 @@ def conformance_test(
                 timeout = "long",
                 client = "//ledger/ledger-api-tests/tool:tool-%s" % lf_version,
                 client_args = test_tool_args + ["localhost:%s" % port for port in ports],
-                data = extra_data,
+                data = extra_data + [":" + hocon_conf_file_name],
                 server = server,
-                server_args = server_args + extra_server_args,
+                server_args = server_args + extra_server_args + ["-c $(rootpath :" + hocon_conf_file_name + ")"],
                 tags = [
                     "dont-run-on-darwin",
                     "exclusive",
@@ -51,7 +54,21 @@ def conformance_test(
                     tags = tags,
                 )
 
-def server_conformance_test(name, servers, server_args = [], test_tool_args = [], flaky = False, lf_versions = ["default"]):
+def generate_conf(name, conf_file_name, content):
+    native.genrule(
+        name = name,
+        srcs = [],
+        outs = [conf_file_name],
+        cmd = """
+set -eou pipefail
+cat << EOF > $@
+{content}
+EOF
+        """.format(content = content),
+        visibility = ["//visibility:public"],
+    )
+
+def server_conformance_test(name, servers, server_args = [], test_tool_args = [], flaky = False, lf_versions = ["default"], hocon_config = ""):
     for server_name, server in servers.items():
         test_name = "-".join([name, server_name])
         conformance_test(
@@ -63,4 +80,5 @@ def server_conformance_test(name, servers, server_args = [], test_tool_args = []
             tags = server.get("tags", []),
             lf_versions = lf_versions,
             flaky = flaky,
+            hocon_config = hocon_config,
         )
