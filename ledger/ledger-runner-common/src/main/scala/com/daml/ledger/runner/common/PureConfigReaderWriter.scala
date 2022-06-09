@@ -257,8 +257,13 @@ object PureConfigReaderWriter {
   implicit val participantConfigConvert: ConfigConvert[ParticipantConfig] =
     deriveConvert[ParticipantConfig]
 
-  implicit val participantDataSourceConfigConvert: ConfigConvert[ParticipantDataSourceConfig] =
-    deriveConvert[ParticipantDataSourceConfig]
+  implicit val participantDataSourceConfigReader: ConfigReader[ParticipantDataSourceConfig] =
+    ConfigReader.fromString[ParticipantDataSourceConfig] { url =>
+      Right(ParticipantDataSourceConfig(url))
+    }
+
+  implicit val participantDataSourceConfigWriter: ConfigWriter[ParticipantDataSourceConfig] =
+    ConfigWriter.toString(_ => Secret)
 
   implicit val participantDataSourceConfigMapReader
       : ConfigReader[Map[Ref.ParticipantId, ParticipantDataSourceConfig]] =

@@ -87,7 +87,7 @@ object SandboxOnXRunner {
   )(implicit resourceContext: ResourceContext): Resource[Port] = {
     implicit val actorSystem: ActorSystem = ActorSystem(RunnerName)
     implicit val materializer: Materializer = Materializer(actorSystem)
-
+    logger.withoutContext.info(s"Config used: ${ConfigRenderer.render(config)}")
     for {
       // Take ownership of the actor system and materializer so they're cleaned up properly.
       // This is necessary because we can't declare them as implicits in a `for` comprehension.
