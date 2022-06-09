@@ -3,7 +3,9 @@
 
 package com.daml.ledger.runner.common
 
-import com.typesafe.config.{Config => TypesafeConfig, ConfigFactory}
+import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
+
+import java.io.File
 
 class HoconCli(programName: String) {
 
@@ -17,6 +19,13 @@ class HoconCli(programName: String) {
       .action { (map, cli) =>
         cli.copy(configMap = map ++ cli.configMap)
       }
+    opt[Seq[File]]('c', "config")
+      .text(
+        "Set configuration file(s). If several configuration files assign values to the same key, the last value is taken."
+      )
+      .valueName("<file1>,<file2>,...")
+      .unbounded()
+      .action((files, cli) => cli.copy(configFiles = cli.configFiles ++ files))
   }
 
   def parse(args: Array[String]): Option[HoconCli.Cli] = {
@@ -27,20 +36,31 @@ class HoconCli(programName: String) {
 
 object HoconCli {
   case class Cli(
-      configMap: Map[String, String] = Map()
+      configFiles: Seq[File] = Seq(),
+      configMap: Map[String, String] = Map(),
   )
-
   def mergeConfigs(firstConfig: TypesafeConfig, otherConfigs: Seq[TypesafeConfig]): TypesafeConfig =
     otherConfigs.foldLeft(firstConfig)((combined, config) => config.withFallback(combined))
 
   def loadConfigWithOverrides(programName: String, args: Array[String]): TypesafeConfig = {
     val cliOptions = new HoconCli(programName).parse(args).getOrElse(sys.exit(1))
+
+    val fileConfigs = cliOptions.configFiles.map(ConfigFactory.parseFile)
+
+    val mergedUserConfigs = fileConfigs match {
+      case Nil => ConfigFactory.empty()
+      case head :: tail =>
+        mergeConfigs(head, tail)
+    }
+
+    ConfigFactory.invalidateCaches()
+    val mergedConfig = mergedUserConfigs.withFallback(ConfigFactory.load())
+
     val configFromMap = {
       import scala.jdk.CollectionConverters._
       ConfigFactory.parseMap(cliOptions.configMap.asJava)
     }
-    ConfigFactory.invalidateCaches()
-    val config = ConfigFactory.load()
-    mergeConfigs(config, Seq(configFromMap))
+
+    mergeConfigs(mergedConfig, Seq(configFromMap))
   }
 }

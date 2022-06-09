@@ -76,7 +76,7 @@ object PureConfigReaderWriter {
       case LanguageVersion.EarlyAccessVersions => "early-access"
       case LanguageVersion.StableVersions => "stable"
       case LanguageVersion.LegacyVersions => "legacy"
-      case other => sys.error(s"Could not find $other in the list of LanguageVersion")
+      case range => s"${range.min.pretty}-${range.max.pretty}"
     }
 
   implicit val interpretationLimitsConvert: ConfigConvert[interpretation.Limits] =
