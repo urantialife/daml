@@ -274,7 +274,7 @@ private[daml] class AstRewriter(
           },
           apply(observers),
           key.map(apply),
-          implements.map({ case (t, x) => (apply(t), apply(x)) }),
+          implements.map { case (t, x) => (apply(t), apply(x)) },
         )
     }
 
@@ -374,7 +374,7 @@ private[daml] class AstRewriter(
           choices.transform((_, v) => apply(v)),
           methods.transform((_, v) => apply(v)),
           apply(precond),
-          coImplements.map({ case (t, x) => (apply(t), apply(x)) }),
+          coImplements.map { case (t, x) => (apply(t), apply(x)) },
         )
     }
 }
