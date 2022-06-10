@@ -23,8 +23,7 @@ def conformance_test(
         dev_mod_flag = "--daml-lf-dev-mode-unsafe",
         flaky = False,
         hocon = False,
-        hocon_config = None,
-        hocon_srcs = []):
+        hocon_config = None):
     for lf_version in lf_versions_aggregate(lf_versions):
         daml_lf_dev_mode_args = ["-C ledger.engine.allowed-language-versions=daml-lf-dev-mode-unsafe"] if hocon else [dev_mod_flag]
         extra_server_args = daml_lf_dev_mode_args if lf_version == lf_version_configuration.get("preview") or lf_version == lf_version_configuration.get("dev") else []
@@ -32,7 +31,7 @@ def conformance_test(
             test_name = "-".join([name, lf_version])
             hocon_conf_file_name = test_name + ".conf"
             if hocon_config:
-                generate_conf("generate-" + test_name, hocon_conf_file_name, content = hocon_config, extra_srcs = hocon_srcs)
+                generate_conf("generate-" + test_name, hocon_conf_file_name, content = hocon_config, data = extra_data)
             client_server_test(
                 name = test_name,
                 runner = runner,
@@ -56,10 +55,10 @@ def conformance_test(
                     tags = tags,
                 )
 
-def generate_conf(name, conf_file_name, content, extra_srcs):
+def generate_conf(name, conf_file_name, content, data):
     native.genrule(
         name = name,
-        srcs = extra_srcs,
+        srcs = data,
         outs = [conf_file_name],
         cmd = """
 set -eou pipefail
