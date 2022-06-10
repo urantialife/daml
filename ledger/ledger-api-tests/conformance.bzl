@@ -23,15 +23,17 @@ def conformance_test(
         dev_mod_flag = "--daml-lf-dev-mode-unsafe",
         flaky = False,
         hocon = False,
-        hocon_config = None):
+        server_hocon_config = None):
     for lf_version in lf_versions_aggregate(lf_versions):
         daml_lf_dev_mode_args = ["-C ledger.engine.allowed-language-versions=daml-lf-dev-mode-unsafe"] if hocon else [dev_mod_flag]
         extra_server_args = daml_lf_dev_mode_args if lf_version == lf_version_configuration.get("preview") or lf_version == lf_version_configuration.get("dev") else []
         if not is_windows:
             test_name = "-".join([name, lf_version])
             hocon_conf_file_name = test_name + ".conf"
-            if hocon_config:
-                generate_conf("generate-" + test_name, hocon_conf_file_name, content = hocon_config, data = extra_data)
+            if server_hocon_config:
+                generate_conf("generate-" + test_name, hocon_conf_file_name, content = server_hocon_config, data = extra_data)
+            hocon_server_args = ["-c $(rootpath :" + hocon_conf_file_name + ")"] if server_hocon_config else []
+            hocon_data = [":" + hocon_conf_file_name] if server_hocon_config else []
             client_server_test(
                 name = test_name,
                 runner = runner,
@@ -39,9 +41,9 @@ def conformance_test(
                 timeout = "long",
                 client = "//ledger/ledger-api-tests/tool:tool-%s" % lf_version,
                 client_args = test_tool_args + ["localhost:%s" % port for port in ports],
-                data = extra_data + [":" + hocon_conf_file_name],
+                data = extra_data + hocon_data,
                 server = server,
-                server_args = server_args + extra_server_args + ["-c $(rootpath :" + hocon_conf_file_name + ")"],
+                server_args = server_args + extra_server_args + hocon_server_args,
                 tags = [
                     "dont-run-on-darwin",
                     "exclusive",
@@ -81,5 +83,5 @@ def server_conformance_test(name, servers, server_args = [], test_tool_args = []
             tags = server.get("tags", []),
             lf_versions = lf_versions,
             flaky = flaky,
-            hocon_config = hocon_config,
+            server_hocon_config = hocon_config,
         )

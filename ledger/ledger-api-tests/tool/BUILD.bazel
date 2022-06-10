@@ -172,7 +172,10 @@ conformance_test(
         "//ledger/test-common/test-certificates:ca.crt",
     ],
     hocon = True,
-    hocon_config = """
+    lf_versions = lf_version_configuration_versions,
+    ports = [6865],
+    server = "//ledger/sandbox-on-x:hocon-conformance-test-postgres-bin",
+    server_hocon_config = """
         ledger.participants.default.api-server {
           seeding=testing-weak
           tls {
@@ -185,9 +188,6 @@ conformance_test(
           }
         }
     """,
-    lf_versions = lf_version_configuration_versions,
-    ports = [6865],
-    server = "//ledger/sandbox-on-x:hocon-conformance-test-postgres-bin",
     test_tool_args = [
         "--verbose",
         "--crt $$(rlocation $$TEST_WORKSPACE/$(rootpath //ledger/test-common/test-certificates:client.crt))",
