@@ -8,9 +8,7 @@ import com.daml.metrics.{Metrics, Timed}
 import com.daml.platform.store.cache.BufferSlice.{BufferSlice, Inclusive, LastBufferChunkSuffix}
 import com.daml.platform.store.cache.EventsBuffer.{
   BufferState,
-  RequestOffBufferBounds,
   SearchableByVector,
-  UnorderedException,
   filterAndChunkSlice,
   indexAfter,
   lastFilteredChunk,
@@ -28,19 +26,15 @@ import scala.math.Ordering
   * @param maxBufferSize The maximum buffer size.
   * @param metrics The Daml metrics.
   * @param bufferQualifier The qualifier used for metrics tag specialization.
-  * @param isRangeEndMarker Identifies if an element [[ENTRY]] should be treated
-  *                         as a range end marker, in which case the element would be treated
-  *                         as a buffer range end updater and not appended to the actual buffer.
   * @tparam ENTRY The entry buffer type.
   */
 class EventsBuffer[ENTRY](
     maxBufferSize: Int,
     metrics: Metrics,
     bufferQualifier: String,
-    isRangeEndMarker: ENTRY => Boolean,
     maxBufferedChunkSize: Int,
 ) {
-  @volatile private[cache] var _bufferState = BufferState[Offset, ENTRY]()
+  @volatile private var _bufferState = BufferState[Offset, ENTRY]()
 
   private val bufferMetrics = metrics.daml.services.index.Buffer(bufferQualifier)
   private val pushTimer = bufferMetrics.push
@@ -61,24 +55,12 @@ class EventsBuffer[ENTRY](
     Timed.value(
       pushTimer,
       synchronized {
-        _bufferState.rangeEnd.foreach { lastOffset =>
-          // Ensure vector grows with strictly monotonic offsets.
-          // Only specially-designated range end markers are allowed
-          // to have offsets equal to the buffer range end.
-          if (lastOffset > offset || (lastOffset == offset && !isRangeEndMarker(entry))) {
-            throw UnorderedException(lastOffset, offset)
-          }
-        }
-
         var bufferVectorSnapshot = _bufferState.vector
 
-        // The range end markers are not appended to the buffer
-        if (!isRangeEndMarker(entry)) {
-          if (bufferVectorSnapshot.size.toLong == maxBufferSize) {
-            bufferVectorSnapshot = bufferVectorSnapshot.drop(1)
-          }
-          bufferVectorSnapshot = bufferVectorSnapshot :+ offset -> entry
+        if (bufferVectorSnapshot.size.toLong == maxBufferSize) {
+          bufferVectorSnapshot = bufferVectorSnapshot.drop(1)
         }
+        bufferVectorSnapshot = bufferVectorSnapshot :+ offset -> entry
 
         // Update the buffer reference
         _bufferState = BufferState(bufferVectorSnapshot, Some(offset))
@@ -103,28 +85,24 @@ class EventsBuffer[ENTRY](
         val bufferSnapshot = _bufferState
         val vectorSnapshot = bufferSnapshot.vector
 
-        if (bufferSnapshot.rangeEnd.exists(_ < endInclusive)) {
-          throw RequestOffBufferBounds(bufferSnapshot.rangeEnd.get, endInclusive)
-        } else {
-          val bufferStartSearchResult = vectorSnapshot.searchBy(startExclusive, _._1)
-          val bufferEndSearchResult = vectorSnapshot.searchBy(endInclusive, _._1)
+        val bufferStartSearchResult = vectorSnapshot.searchBy(startExclusive, _._1)
+        val bufferEndSearchResult = vectorSnapshot.searchBy(endInclusive, _._1)
 
-          val bufferStartInclusiveIdx = indexAfter(bufferStartSearchResult)
-          val bufferEndExclusiveIdx = indexAfter(bufferEndSearchResult)
+        val bufferStartInclusiveIdx = indexAfter(bufferStartSearchResult)
+        val bufferEndExclusiveIdx = indexAfter(bufferEndSearchResult)
 
-          val bufferSlice = vectorSnapshot.slice(bufferStartInclusiveIdx, bufferEndExclusiveIdx)
+        val bufferSlice = vectorSnapshot.slice(bufferStartInclusiveIdx, bufferEndExclusiveIdx)
 
-          val filteredBufferSlice = bufferStartSearchResult match {
-            case InsertionPoint(0) if bufferSlice.isEmpty =>
-              LastBufferChunkSuffix(endInclusive, Vector.empty)
-            case InsertionPoint(0) => lastFilteredChunk(bufferSlice, filter, maxBufferedChunkSize)
-            case InsertionPoint(_) | Found(_) =>
-              Inclusive(filterAndChunkSlice(bufferSlice.view, filter, maxBufferedChunkSize))
-          }
-
-          sliceSizeHistogram.update(filteredBufferSlice.slice.size)
-          filteredBufferSlice
+        val filteredBufferSlice = bufferStartSearchResult match {
+          case InsertionPoint(0) if bufferSlice.isEmpty =>
+            LastBufferChunkSuffix(endInclusive, Vector.empty)
+          case InsertionPoint(0) => lastFilteredChunk(bufferSlice, filter, maxBufferedChunkSize)
+          case InsertionPoint(_) | Found(_) =>
+            Inclusive(filterAndChunkSlice(bufferSlice.view, filter, maxBufferedChunkSize))
         }
+
+        sliceSizeHistogram.update(filteredBufferSlice.slice.size)
+        filteredBufferSlice
       },
     )
 
@@ -168,7 +146,7 @@ private[platform] object BufferSlice {
 }
 
 private[platform] object EventsBuffer {
-  private[cache] final case class BufferState[O, E](
+  private final case class BufferState[O, E](
       vector: Vector[(O, E)] = Vector.empty,
       rangeEnd: Option[O] = Option.empty,
   )
@@ -176,11 +154,6 @@ private[platform] object EventsBuffer {
   private[cache] final case class UnorderedException[O](first: O, second: O)
       extends RuntimeException(
         s"Elements appended to the buffer should have strictly increasing offsets: $first vs $second"
-      )
-
-  private[cache] final case class RequestOffBufferBounds[O](bufferEnd: O, requestEnd: O)
-      extends RuntimeException(
-        s"Request endInclusive ($requestEnd) is higher than bufferEnd ($bufferEnd)"
       )
 
   /** Binary search implementation inspired from scala.collection.Searching

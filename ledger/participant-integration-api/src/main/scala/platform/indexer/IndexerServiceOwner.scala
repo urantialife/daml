@@ -3,29 +3,33 @@
 
 package com.daml.platform.indexer
 
+import akka.NotUsed
 import akka.stream.Materializer
+import akka.stream.scaladsl.Flow
 import com.daml.ledger.api.health.{Healthy, ReportsHealth}
+import com.daml.ledger.offset.Offset
+import com.daml.ledger.participant.state.v2.Update
 import com.daml.ledger.participant.state.{v2 => state}
 import com.daml.ledger.resources.{Resource, ResourceContext, ResourceOwner}
 import com.daml.lf.data.Ref
 import com.daml.logging.{ContextualizedLogger, LoggingContext}
 import com.daml.metrics.Metrics
+import com.daml.platform.ParticipantInMemoryState
 import com.daml.platform.store.DbSupport.ParticipantDataSourceConfig
-import com.daml.platform.store.interning.StringInterningView
 import com.daml.platform.store.{FlywayMigrations, LfValueTranslationCache}
 
 import scala.concurrent.Future
 
-final class StandaloneIndexerServer(
+final class IndexerServiceOwner(
     participantId: Ref.ParticipantId,
     participantDataSourceConfig: ParticipantDataSourceConfig,
     readService: state.ReadService,
     config: IndexerConfig,
     metrics: Metrics,
     lfValueTranslationCache: LfValueTranslationCache.Cache,
+    participantInMemoryState: ParticipantInMemoryState,
+    inMemoryStateUpdaterFlow: Flow[(Vector[(Offset, Update)], Long), Unit, NotUsed],
     additionalMigrationPaths: Seq[String] = Seq.empty,
-    // TODO LLP: Always pass shared stringInterningView
-    stringInterningViewO: Option[StringInterningView] = None,
 )(implicit materializer: Materializer, loggingContext: LoggingContext)
     extends ResourceOwner[ReportsHealth] {
 
@@ -44,7 +48,8 @@ final class StandaloneIndexerServer(
       readService,
       metrics,
       lfValueTranslationCache,
-      stringInterningViewO,
+      participantInMemoryState,
+      inMemoryStateUpdaterFlow,
     )
     val indexer = RecoveringIndexer(
       materializer.system.scheduler,
@@ -100,7 +105,7 @@ final class StandaloneIndexerServer(
   }
 }
 
-object StandaloneIndexerServer {
+object IndexerServiceOwner {
 
   // Separate entry point for migrateOnly that serves as an operations rather than a startup command. As such it
   // does not require any of the configurations of a full-fledged indexer except for the jdbc url.

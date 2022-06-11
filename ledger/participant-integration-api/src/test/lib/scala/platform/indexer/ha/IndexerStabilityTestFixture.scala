@@ -10,7 +10,7 @@ import com.daml.ledger.resources.{Resource, ResourceContext, ResourceOwner}
 import com.daml.logging.ContextualizedLogger
 import com.daml.logging.LoggingContext.{newLoggingContext, withEnrichedLoggingContext}
 import com.daml.metrics.Metrics
-import com.daml.platform.indexer.{IndexerConfig, IndexerStartupMode, StandaloneIndexerServer}
+import com.daml.platform.indexer.{IndexerConfig, IndexerStartupMode, IndexerServiceOwner}
 import com.daml.platform.store.DbSupport.ParticipantDataSourceConfig
 import com.daml.platform.store.LfValueTranslationCache
 import com.daml.platform.store.interning.StringInterningView
@@ -95,7 +95,7 @@ object IndexerStabilityTestFixture {
                   metricRegistry = new MetricRegistry
                   metrics = new Metrics(metricRegistry)
                   // Create an indexer and immediately start it
-                  indexing <- new StandaloneIndexerServer(
+                  indexing <- new IndexerServiceOwner(
                     participantId = EndlessReadService.participantId,
                     participantDataSourceConfig = ParticipantDataSourceConfig(jdbcUrl),
                     readService = readService,

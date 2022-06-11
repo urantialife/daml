@@ -14,7 +14,6 @@ import com.daml.platform.store.backend.{ParameterStorageBackend, StringInterning
 import com.daml.platform.store.cache.{ContractStateCaches, EventsBuffer, MutableLedgerEndCache}
 import com.daml.platform.store.dao.DbDispatcher
 import com.daml.platform.store.interfaces.TransactionLogUpdate
-import com.daml.platform.store.interfaces.TransactionLogUpdate.LedgerEndMarker
 import com.daml.platform.store.interning.{StringInterningView, UpdatingStringInterningView}
 import com.daml.timer.Timeout._
 
@@ -106,7 +105,6 @@ private[platform] class ParticipantInMemoryState(
 object ParticipantInMemoryState {
   private val logger = ContextualizedLogger.get(getClass)
   def owner(
-      ledgerEnd: LedgerEnd,
       apiStreamShutdownTimeout: Duration,
       bufferedStreamsPageSize: Int,
       maxContractStateCacheSize: Long,
@@ -114,13 +112,15 @@ object ParticipantInMemoryState {
       maxTransactionsInMemoryFanOutBufferSize: Int,
       metrics: Metrics,
       executionContext: ExecutionContext,
-  )(implicit loggingContext: LoggingContext): ResourceOwner[ParticipantInMemoryState] =
+  )(implicit loggingContext: LoggingContext): ResourceOwner[ParticipantInMemoryState] = {
+    val initialLedgerEnd = LedgerEnd.beforeBegin
     ResourceOwner.forReleasable(() =>
       new ParticipantInMemoryState(
-        ledgerEndCache =
-          MutableLedgerEndCache().tap(_.set((ledgerEnd.lastOffset, ledgerEnd.lastEventSeqId))),
+        ledgerEndCache = MutableLedgerEndCache().tap(
+          _.set((initialLedgerEnd.lastOffset, initialLedgerEnd.lastEventSeqId))
+        ),
         contractStateCaches = ContractStateCaches.build(
-          ledgerEnd.lastOffset,
+          initialLedgerEnd.lastOffset,
           maxContractStateCacheSize,
           maxContractKeyStateCacheSize,
           metrics,
@@ -130,13 +130,13 @@ object ParticipantInMemoryState {
           metrics = metrics,
           bufferQualifier = "transactions",
           maxBufferedChunkSize = bufferedStreamsPageSize,
-          isRangeEndMarker = _.isInstanceOf[LedgerEndMarker],
         ),
         stringInterningView = new StringInterningView,
         metrics = metrics,
         apiStreamShutdownTimeout = apiStreamShutdownTimeout,
       )(executionContext)
     )(_.shutdown(apiStreamShutdownTimeout))
+  }
 
   private def buildDispatcher(ledgerEnd: LedgerEnd): Dispatcher[Offset] =
     Dispatcher(

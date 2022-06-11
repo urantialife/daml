@@ -29,7 +29,7 @@ import scala.collection.immutable
 import scala.concurrent.ExecutionContextExecutor
 import scala.util.{Failure, Success, Try}
 
-object StandaloneApiServer {
+object ApiServerOwner {
   private val logger = ContextualizedLogger.get(this.getClass)
 
   def apply(

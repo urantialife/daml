@@ -21,6 +21,7 @@ import com.daml.lf.data.Ref
 import com.daml.logging.LoggingContext.{newLoggingContext, newLoggingContextWith}
 import com.daml.logging.{ContextualizedLogger, LoggingContext}
 import com.daml.metrics.{Metrics, MetricsReporting}
+import com.daml.platform.ParticipantServer
 import com.daml.platform.apiserver.{ApiServer, ApiServerConfig}
 import com.daml.platform.config.ParticipantConfig
 import com.daml.platform.sandbox.banner.Banner
@@ -55,46 +56,62 @@ final class SandboxServer(
   def this(config: SandboxConfig, materializer: Materializer) =
     this(config, new Metrics(new MetricRegistry))(materializer)
 
-  def acquire()(implicit resourceContext: ResourceContext): Resource[Port] = {
-    val maybeLedgerId = config.jdbcUrl.flatMap(getLedgerId)
-    val genericCliConfig = ConfigConverter.toSandboxOnXConfig(config, maybeLedgerId, DefaultName)
-    val bridgeConfigAdaptor: BridgeConfigAdaptor = new BridgeConfigAdaptor {
-      override def authService(apiServerConfig: ApiServerConfig): AuthService =
-        config.authService.getOrElse(AuthServiceWildcard)
-    }
-    val genericConfig = CliConfigConverter.toConfig(bridgeConfigAdaptor, genericCliConfig)
-    for {
-      (participantId, dataSource, participantConfig) <- SandboxOnXRunner.combinedParticipant(
-        genericConfig
-      )
-      (apiServer, writeService, indexService) <-
-        SandboxOnXRunner
-          .buildLedger(
-            participantId,
-            genericConfig,
-            participantConfig,
-            dataSource,
-            genericCliConfig.extra,
-            materializer,
-            materializer.system,
-            bridgeConfigAdaptor,
-            Some(metrics),
-          )
-          .acquire()
-      _ <- Resource.fromFuture(writePortFile(apiServer.port)(resourceContext.executionContext))
-      _ <- newLoggingContextWith(logging.participantId(config.participantId)) {
-        implicit loggingContext =>
-          loadPackages(writeService, indexService)(
-            resourceContext.executionContext,
-            materializer.system,
-            loggingContext,
-          )
-            .acquire()
+  def acquire()(implicit resourceContext: ResourceContext): Resource[Port] = newLoggingContext {
+    implicit loggingContext =>
+      val maybeLedgerId = config.jdbcUrl.flatMap(getLedgerId)
+      val genericCliConfig = ConfigConverter.toSandboxOnXConfig(config, maybeLedgerId, DefaultName)
+      val bridgeConfigAdaptor: BridgeConfigAdaptor = new BridgeConfigAdaptor {
+        override def authService(apiServerConfig: ApiServerConfig): AuthService =
+          config.authService.getOrElse(AuthServiceWildcard)
       }
-    } yield {
-      initializationLoggingHeader(genericConfig, participantConfig, dataSource, apiServer)
-      apiServer.port
-    }
+      val genericConfig = CliConfigConverter.toConfig(bridgeConfigAdaptor, genericCliConfig)
+      for {
+        (participantId, dataSource, participantConfig) <- SandboxOnXRunner.combinedParticipant(
+          genericConfig
+        )
+        (stateUpdatesFeedSink, stateUpdatesSource) <- AkkaSubmissionsBridge().acquire()
+        readServiceWithSubscriber = new BridgeReadService(
+          ledgerId = genericConfig.ledgerId,
+          maximumDeduplicationDuration = genericCliConfig.extra.maxDeduplicationDuration,
+          stateUpdatesSource,
+        )
+        buildWriteServiceLambda = SandboxOnXRunner.buildWriteService(
+          participantId,
+          stateUpdatesFeedSink,
+          participantConfig,
+          genericCliConfig.extra,
+          materializer,
+          loggingContext,
+        )
+        (apiServer, writeService, indexService) <-
+          new ParticipantServer(
+            participantId,
+            genericConfig.ledgerId,
+            participantConfig,
+            genericConfig.engine,
+            genericConfig.metrics,
+            dataSource,
+            buildWriteServiceLambda,
+            readServiceWithSubscriber,
+            bridgeConfigAdaptor.timeServiceBackend(participantConfig.apiServer),
+            bridgeConfigAdaptor.authService(participantConfig.apiServer),
+            Some(metrics),
+          )(materializer, materializer.system).owner
+            .acquire()
+        _ <- Resource.fromFuture(writePortFile(apiServer.port)(resourceContext.executionContext))
+        _ <- newLoggingContextWith(logging.participantId(config.participantId)) {
+          implicit loggingContext =>
+            loadPackages(writeService, indexService)(
+              resourceContext.executionContext,
+              materializer.system,
+              loggingContext,
+            )
+              .acquire()
+        }
+      } yield {
+        initializationLoggingHeader(genericConfig, participantConfig, dataSource, apiServer)
+        apiServer.port
+      }
   }
 
   private def initializationLoggingHeader(

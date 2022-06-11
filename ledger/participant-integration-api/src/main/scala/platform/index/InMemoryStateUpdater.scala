@@ -90,19 +90,14 @@ object InMemoryStateUpdater {
   private def updateCaches(participantInMemoryState: ParticipantInMemoryState)(
       updates: Vector[TransactionLogUpdate]
   ): Unit =
-    updates.foreach {
-      case transaction: TransactionLogUpdate.Transaction =>
-        // TODO LLP: Batch update caches
-        participantInMemoryState.transactionsBuffer.push(transaction.offset, transaction)
+    updates.foreach { case transaction: TransactionLogUpdate.Transaction =>
+      // TODO LLP: Batch update caches
+      participantInMemoryState.transactionsBuffer.push(transaction.offset, transaction)
 
-        val contractStateEventsBatch = convertToContractStateEvents(transaction)
-        if (contractStateEventsBatch.nonEmpty) {
-          participantInMemoryState.contractStateCaches.push(contractStateEventsBatch)
-        }
-
-      case _: TransactionLogUpdate.LedgerEndMarker =>
-        // TODO LLP: Remove TransactionLogUpdate.LedgerEndMarker
-        ()
+      val contractStateEventsBatch = convertToContractStateEvents(transaction)
+      if (contractStateEventsBatch.nonEmpty) {
+        participantInMemoryState.contractStateCaches.push(contractStateEventsBatch)
+      }
     }
 
   private def updateLedgerEnd(

@@ -199,7 +199,7 @@ class RecoveringIndexerIntegrationSpec
       actorSystem <- ResourceOwner.forActorSystem(() => ActorSystem())
       materializer <- ResourceOwner.forMaterializer(() => Materializer(actorSystem))
       participantState <- newParticipantState(ledgerId, participantId)(materializer, loggingContext)
-      _ <- new StandaloneIndexerServer(
+      _ <- new IndexerServiceOwner(
         readService = participantState._1,
         participantId = participantId,
         config = IndexerConfig(

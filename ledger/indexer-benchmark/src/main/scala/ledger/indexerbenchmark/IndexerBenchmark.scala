@@ -17,7 +17,7 @@ import com.daml.lf.data.Time
 import com.daml.logging.LoggingContext
 import com.daml.logging.LoggingContext.newLoggingContext
 import com.daml.metrics.{JvmMetricSet, Metrics}
-import com.daml.platform.indexer.{Indexer, JdbcIndexer, StandaloneIndexerServer}
+import com.daml.platform.indexer.{Indexer, JdbcIndexer, IndexerServiceOwner}
 import com.daml.platform.store.DbSupport.ParticipantDataSourceConfig
 import com.daml.platform.store.LfValueTranslationCache
 import com.daml.resources
@@ -121,7 +121,7 @@ class IndexerBenchmark() {
   ): resources.Resource[ResourceContext, Indexer] =
     Await
       .result(
-        StandaloneIndexerServer
+        IndexerServiceOwner
           .migrateOnly(config.dataSource.jdbcUrl)
           .map(_ => indexerFactory.initialized())(indexerExecutionContext),
         Duration(5, "minute"),
