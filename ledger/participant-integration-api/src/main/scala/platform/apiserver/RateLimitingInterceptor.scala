@@ -5,7 +5,7 @@ package com.daml.platform.apiserver
 
 import com.codahale.metrics.MetricRegistry
 import com.daml.metrics.{MetricName, Metrics}
-import com.daml.platform.apiserver.RateLimitingInterceptor.doNonLimit
+import com.daml.platform.apiserver.RateLimitingInterceptor.{OnCloseServerCall, doNonLimit}
 import com.daml.platform.apiserver.TenuredMemoryPool.findTenuredMemoryPool
 import com.daml.platform.apiserver.configuration.RateLimitingConfig
 import com.daml.platform.configuration.ServerRole
@@ -14,17 +14,12 @@ import io.grpc._
 import io.grpc.protobuf.StatusProto
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.duration._
-import java.lang.management.{
-  ManagementFactory,
-  MemoryMXBean,
-  MemoryPoolMXBean,
-  MemoryType,
-  MemoryUsage,
-}
+import java.lang.management._
 import java.util.concurrent.atomic.AtomicLong
 import javax.management.ObjectName
+import scala.concurrent.duration._
 import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.util.Try
 
 private[apiserver] final class RateLimitingInterceptor(
     metrics: Metrics,
@@ -56,12 +51,13 @@ private[apiserver] final class RateLimitingInterceptor(
       next: ServerCallHandler[ReqT, RespT],
   ): ServerCall.Listener[ReqT] = {
 
-    serviceOverloaded(call.getMethodDescriptor.getFullMethodName) match {
+    val fullMethodName = call.getMethodDescriptor.getFullMethodName
+    serviceOverloaded(fullMethodName) match {
       case Some(errorMessage) =>
         val rpcStatus = com.google.rpc.Status
           .newBuilder()
           .setCode(Code.ABORTED.value())
-          .setMessage(errorMessage)
+          .setMessage(s"$errorMessage [Calling $fullMethodName]")
           .build()
 
         logger.info(s"gRPC call rejected: $rpcStatus")
@@ -69,10 +65,16 @@ private[apiserver] final class RateLimitingInterceptor(
         val exception = StatusProto.toStatusRuntimeException(rpcStatus)
 
         call.close(exception.getStatus, exception.getTrailers)
+
         new ServerCall.Listener[ReqT]() {}
 
       case None =>
-        next.startCall(call, headers)
+        val listener: ServerCall.Listener[ReqT] = next.startCall(
+          new OnCloseServerCall(call, () => metrics.daml.lapi.streams.active.dec()),
+          headers,
+        )
+        metrics.daml.lapi.streams.active.inc() // Only do after call above has returned
+        listener
     }
 
   }
@@ -82,18 +84,20 @@ private[apiserver] final class RateLimitingInterceptor(
       None
     } else {
       (for {
-        _ <- memoryOverloaded(fullMethodName)
-        _ <- metricOverloaded(fullMethodName, apiServices, config.maxApiServicesQueueSize)
+        _ <- memoryOverloaded()
+        _ <- queueOverloaded(apiServices, config.maxApiServicesQueueSize)
+        _ <- queueOverloaded(indexDbThreadpool, config.maxApiServicesIndexDbQueueSize)
         _ <- metricOverloaded(
-          fullMethodName,
-          indexDbThreadpool,
-          config.maxApiServicesIndexDbQueueSize,
+          metricDescription = "Number of active streams",
+          name = metrics.daml.lapi.streams.activeName,
+          value = metrics.daml.lapi.streams.active.getCount + 1, // Once created
+          limit = config.maxStreams,
         )
       } yield ()).fold(Some.apply, _ => None)
     }
   }
 
-  private def memoryOverloaded(fullMethodName: String): Either[String, Unit] = {
+  private def memoryOverloaded(): Either[String, Unit] = {
     tenuredMemoryPool.fold[Either[String, Unit]](Right(())) { p =>
       if (p.isCollectionUsageThresholdExceeded) {
         val expectedThreshold =
@@ -104,7 +108,6 @@ private[apiserver] final class RateLimitingInterceptor(
           val rpcStatus =
             s"""
                | The ${p.getName} collection usage threshold has exceeded the maximum (${p.getCollectionUsageThreshold}).
-               | The rejected call was $fullMethodName.
                | Jvm memory metrics are available at $poolBeanMetricPrefix
             """.stripMargin
           gc()
@@ -139,20 +142,27 @@ private[apiserver] final class RateLimitingInterceptor(
     memoryMxBean.gc()
   }
 
-  private def metricOverloaded(
-      fullMethodName: String,
+  private def queueOverloaded(
       count: InstrumentedCount,
       limit: Int,
   ): Either[String, Unit] = {
-    val queued = count.queueSize
-    if (queued > limit) {
-      val rpcStatus =
-        s"""
-           | The ${count.name} queue size ($queued) has exceeded the maximum ($limit).
-           | The rejected call was $fullMethodName.
-           | Api services metrics are available at ${count.prefix}.
-          """.stripMargin
+    metricOverloaded(
+      metricDescription = s"${count.name} queue size",
+      name = count.prefix,
+      value = count.queueSize,
+      limit = limit,
+    )
+  }
 
+  private def metricOverloaded(
+      metricDescription: String,
+      name: MetricName,
+      value: Long,
+      limit: Int,
+  ): Either[String, Unit] = {
+    if (value > limit) {
+      val rpcStatus =
+        s"$metricDescription, value of $value has exceeded the maximum limit of $limit. Metrics are available at $name."
       Left(rpcStatus)
     } else {
       Right(())
@@ -191,6 +201,24 @@ object RateLimitingInterceptor {
     "grpc.health.v1.Health/Check",
     "grpc.health.v1.Health/Watch",
   )
+
+  private class OnCloseServerCall[ReqT, RespT](
+      val delegate: ServerCall[ReqT, RespT],
+      safeOnClose: () => Unit,
+  ) extends ForwardingServerCall[ReqT, RespT] {
+    private val logger = LoggerFactory.getLogger(getClass)
+
+    override def close(status: Status, trailers: Metadata): Unit = {
+      try {
+        delegate.close(status, trailers)
+      } finally {
+        Try(safeOnClose()).failed.foreach(logger.warn(s"Exception calling onClose method", _))
+      }
+    }
+
+    override def getMethodDescriptor: MethodDescriptor[ReqT, RespT] = delegate.getMethodDescriptor
+  }
+
 }
 
 class GcThrottledMemoryBean(delegate: MemoryMXBean, delayBetweenCalls: Duration = 1.seconds)

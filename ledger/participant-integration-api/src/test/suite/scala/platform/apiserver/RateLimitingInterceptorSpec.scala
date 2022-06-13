@@ -16,25 +16,24 @@ import com.daml.platform.apiserver.TenuredMemoryPool.findTenuredMemoryPool
 import com.daml.platform.apiserver.configuration.RateLimitingConfig
 import com.daml.platform.apiserver.services.GrpcClientResource
 import com.daml.platform.configuration.ServerRole
-import com.daml.platform.hello.{HelloRequest, HelloServiceGrpc}
+import com.daml.platform.hello.{HelloRequest, HelloResponse, HelloServiceGrpc}
 import com.daml.platform.server.api.services.grpc.GrpcHealthService
 import com.daml.ports.Port
 import com.daml.resources.akka.ActorSystemResourceOwner
+import com.google.protobuf.ByteString
+import io.grpc.Status.Code
 import io.grpc._
 import io.grpc.health.v1.health.{HealthCheckRequest, HealthCheckResponse, HealthGrpc}
 import io.grpc.netty.NettyServerBuilder
 import io.grpc.protobuf.services.ProtoReflectionService
-import io.grpc.reflection.v1alpha.{
-  ServerReflectionGrpc,
-  ServerReflectionRequest,
-  ServerReflectionResponse,
-}
+import io.grpc.reflection.v1alpha.{ServerReflectionGrpc, ServerReflectionRequest, ServerReflectionResponse}
 import io.grpc.stub.StreamObserver
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Second, Span}
+import org.slf4j.LoggerFactory
 
 import java.lang.management._
 import java.net.{InetAddress, InetSocketAddress}
@@ -51,10 +50,11 @@ final class RateLimitingInterceptorSpec
 
   import RateLimitingInterceptorSpec._
 
-  implicit override val patienceConfig: PatienceConfig =
-    PatienceConfig(timeout = scaled(Span(1, Second)))
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(1, Second)))
 
-  private val config = RateLimitingConfig(100, 10, 75, 100 * RateLimitingConfig.Megabyte)
+  private val config = RateLimitingConfig(100, 10, 75, 100 * RateLimitingConfig.Megabyte, 100)
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   behavior of "RateLimitingInterceptor"
 
@@ -102,6 +102,7 @@ final class RateLimitingInterceptorSpec
   }
 
   /** Allowing metadata requests allows grpcurl to be used to debug problems */
+
   it should "allow metadata requests even when over limit" in {
     val metrics = new Metrics(new MetricRegistry)
     metrics.registry
@@ -213,6 +214,82 @@ final class RateLimitingInterceptorSpec
           )
           verify(memoryBean).gc()
           exception.getMessage should include(expectedMetric)
+        }
+    }
+  }
+
+  it should "limit the number of streams" in {
+
+    val metrics = new Metrics(new MetricRegistry)
+
+    val limitStreamConfig = RateLimitingConfig.Default.copy(maxStreams = 2)
+
+    class Stream(val close: () => Future[Status], val status: Future[Status])
+
+    def stream(channel: Channel, id: String): Future[Stream] = {
+
+      // A large size is needed to avoid the streams closing on the server side before the limit is reached
+      val size = 10000
+
+      val init = Promise[Stream]()
+      val status = Promise[Status]()
+      val clientCall =
+        channel.newCall(HelloServiceGrpc.METHOD_SERVER_STREAMING, CallOptions.DEFAULT)
+
+      val stream = new Stream(
+        close = () => {
+          clientCall.request(size - 1) // Request remaining messages
+          status.future
+        },
+        status = status.future,
+      )
+
+      clientCall.start(
+        new ClientCall.Listener[HelloResponse] {
+          override def onClose(grpcStatus: Status, trailers: Metadata): Unit = {
+            logger.info(s"onClose($id, $grpcStatus, $trailers)")
+            if (!init.isCompleted) init.success(stream)
+            status.success(grpcStatus)
+          }
+          override def onMessage(message: HelloResponse): Unit = {
+            if (Set(1, size).contains(message.respInt)) logger.info(s"onMessage($message)")
+            if (message.respInt == 1) init.success(stream)
+          }
+        },
+        new Metadata(),
+      )
+
+      // When the handshake is single message -> stream then onReady is not applicable
+      clientCall.sendMessage(HelloRequest(size, ByteString.copyFromUtf8(id)))
+      clientCall.halfClose()
+
+      clientCall.request(1) // Request first message
+
+      init.future
+    }
+
+    withChannel(metrics, new HelloServiceAkkaImplementation, limitStreamConfig).use {
+      channel: Channel =>
+        {
+          for {
+            stream1 <- stream(channel, "s1") // Ok
+            stream2 <- stream(channel, "s2") // Ok
+            activeStreams = metrics.daml.lapi.streams.active.getCount
+            stream3 <- stream(channel, "s3") // Limited
+            status1 <- stream1.close()
+            stream4 <- stream(channel, "s4") // Ok
+            status2 <- stream2.close()
+            status3 <- stream3.close() // Already closed
+            status4 <- stream4.close()
+          } yield {
+            activeStreams shouldBe limitStreamConfig.maxStreams
+            status1.getCode shouldBe Code.OK
+            status2.getCode shouldBe Code.OK
+            metrics.daml.lapi.streams.active.getCount shouldBe 0
+            status3.getCode shouldBe Code.ABORTED
+            status3.getDescription should include(metrics.daml.lapi.streams.activeName)
+            status4.getCode shouldBe Code.OK
+          }
         }
     }
   }
