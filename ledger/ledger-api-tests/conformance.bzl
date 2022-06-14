@@ -71,7 +71,7 @@ EOF
         visibility = ["//visibility:public"],
     )
 
-def server_conformance_test(name, servers, server_args = [], test_tool_args = [], flaky = False, lf_versions = ["default"], hocon_config = None):
+def server_conformance_test(name, servers, server_args = [], test_tool_args = [], flaky = False, lf_versions = ["default"], hocon = False, hocon_config = None):
     for server_name, server in servers.items():
         test_name = "-".join([name, server_name])
         conformance_test(
@@ -84,4 +84,5 @@ def server_conformance_test(name, servers, server_args = [], test_tool_args = []
             lf_versions = lf_versions,
             flaky = flaky,
             server_hocon_config = hocon_config,
+            hocon = hocon,
         )

@@ -437,14 +437,15 @@ SERVERS = {
 
 conformance_test(
     name = "conformance-test-no-conflict-checking",
+    hocon = True,
     ports = [6865],
     server = ":app",
-    server_args = [
-        "run-legacy",
-        "--contract-id-seeding=testing-weak",
-        "--participant participant-id=example,port=6865",
-        "--disable-conflict-checking",
-    ],
+    server_hocon_config = """
+    {
+        ledger.participants.default.api-server.seeding=testing-weak
+        bridge.conflict-checking-enabled=false
+    }
+    """,
     test_tool_args = [
         "--verbose",
         "--exclude=ClosedWorldIT",
@@ -463,12 +464,13 @@ conformance_test(
 
 server_conformance_test(
     name = "conformance-test",
-    server_args = [
-        "run-legacy",
-        "--contract-id-seeding=testing-weak",
-        "--participant participant-id=example,port=6865",
-        "--enable-user-management=true",
-    ],
+    hocon = True,
+    hocon_config = """
+        ledger.participants.default.api-server {
+            seeding=testing-weak
+            user-management.enabled=true
+        }
+    """,
     servers = SERVERS,
     test_tool_args = [
         "--verbose",
@@ -481,16 +483,26 @@ server_conformance_test(
 # into a cache or where multiple buffers have to be combined.
 server_conformance_test(
     name = "conformance-test-tiny-buffers",
-    server_args = [
-        "run-legacy",
-        "--contract-id-seeding=testing-weak",
-        "--participant participant-id=example,port=6865,contract-state-cache-max-size=2,contract-key-state-cache-max-size=2",
-        "--enable-user-management=true",
-        "--events-page-size=2",
-        "--acs-id-page-size=2",
-        "--user-management-max-cache-size=2",
-        # "--user-management-max-users-page-size=2" -- minimum size is 100 which is not tiny anymore
-    ],
+    hocon = True,
+    hocon_config = """
+    {
+      ledger.participants.default {
+        api-server {
+          seeding = testing-weak
+          user-management {
+            enabled = true
+            max-cache-size = 2
+          }
+        }
+        index-service {
+          max-contract-key-state-cache-size = 2
+          max-contract-state-cache-size = 2
+          acs-id-page-size = 2
+          events-page-size = 2
+        }
+      }
+    }
+    """,
     servers = {"postgresql": SERVERS["postgresql"]},
     test_tool_args = [
         "--verbose",
@@ -499,14 +511,17 @@ server_conformance_test(
 
 conformance_test(
     name = "conformance-test-static-time",
+    hocon = True,
     ports = [6865],
     server = ":app",
-    server_args = [
-        "run-legacy",
-        "--contract-id-seeding=testing-weak",
-        "--participant participant-id=example,port=6865",
-        "--static-time",
-    ],
+    server_hocon_config = """
+    {
+      ledger.participants.default.api-server {
+        seeding=testing-weak
+        time-provider-type=static
+      }
+    }
+    """,
     test_tool_args = [
         "--verbose",
     ],
@@ -514,14 +529,21 @@ conformance_test(
 
 conformance_test(
     name = "conformance-test-in-memory-fan-out",
+    hocon = True,
     ports = [6865],
     server = ":app",
-    server_args = [
-        "run-legacy",
-        "--contract-id-seeding=testing-weak",
-        "--participant participant-id=example,port=6865",
-        "--buffered-ledger-api-streams",
-    ],
+    server_hocon_config = """
+    {
+      ledger.participants.default {
+        api-server {
+          seeding = testing-weak
+        }
+        index-service {
+          enable-in-memory-fan-out-for-ledger-api=true
+        }
+      }
+    }
+    """,
     test_tool_args = [
         "--verbose",
     ],
@@ -529,189 +551,24 @@ conformance_test(
 
 conformance_test(
     name = "conformance-test-in-memory-fan-out-tiny-buffer",
+    hocon = True,
     ports = [6865],
     server = ":app",
-    server_args = [
-        "run-legacy",
-        "--contract-id-seeding=testing-weak",
-        "--participant participant-id=example,port=6865",
-        "--ledger-api-transactions-buffer-max-size=3",
-        "--buffered-streams-page-size=1",
-        "--buffered-ledger-api-streams",
-    ],
+    server_hocon_config = """
+    {
+      ledger.participants.default {
+        api-server {
+          seeding = testing-weak
+        }
+        index-service {
+          enable-in-memory-fan-out-for-ledger-api=true
+          buffered-streams-page-size = 1
+          max-transactions-in-memory-fan-out-buffer-size=3
+        }
+      }
+    }
+    """,
     test_tool_args = [
         "--verbose",
     ],
 )
-
-#SERVERS_HOCON = {
-#    "h2database": {
-#        "binary": ":hocon-app",
-#    },
-#    "postgresql": {
-#        "binary": ":hocon-conformance-test-postgres-bin",
-#    },
-#    "oracle": {
-#        "binary": ":hocon-conformance-test-oracle-bin",
-#        "tags": oracle_tags,
-#    },
-#}
-#
-#da_scala_binary(
-#    name = "hocon-app",
-#    main_class = "com.daml.ledger.sandbox.HoconMain",
-#    tags = [
-#        "fat_jar",
-#        "maven_coordinates=com.daml:sandbox-on-x-app-jar:__VERSION__",
-#        "no_scala_version_suffix",
-#    ],
-#    visibility = ["//visibility:public"],
-#    runtime_deps = [
-#        "@maven//:ch_qos_logback_logback_classic",
-#        "@maven//:ch_qos_logback_logback_core",
-#        "@maven//:com_h2database_h2",
-#    ],
-#    deps = [
-#        ":sandbox-on-x-app-lib",
-#    ],
-#)
-#
-#da_scala_binary(
-#    name = "hocon-conformance-test-oracle-bin",
-#    main_class = "com.daml.ledger.sandbox.HoconMainWithEphemeralOracleUser",
-#    visibility = ["//visibility:public"],
-#    runtime_deps = [],
-#    deps = [
-#        ":sandbox-on-x-test-app",
-#    ],
-#)
-#
-#da_scala_binary(
-#    name = "hocon-conformance-test-postgres-bin",
-#    main_class = "com.daml.ledger.sandbox.HoconMainWithEphemeralPostgresql",
-#    visibility = ["//visibility:public"],
-#    runtime_deps = [],
-#    deps = [
-#        ":sandbox-on-x-test-app",
-#    ],
-#)
-#
-##Duplicated tests using new hocon-style configuration
-#conformance_test(
-#    name = "hocon-conformance-test-no-conflict-checking",
-#    ports = [6865],
-#    server = ":hocon-app",
-#    server_hocon_config = """
-#    {
-#        ledger.participants.default.api-server {
-#            seeding=testing-weak
-#            user-management.enabled=true
-#        }
-#
-#        bridge {
-#            conflict-checking-enabled=false
-#        }
-#    }
-#    """,
-#    test_tool_args = [
-#        "--verbose",
-#        "--exclude=ClosedWorldIT",
-#        "--exclude=ContractKeysIT",
-#        "--exclude=SemanticTests",
-#        "--exclude=RaceConditionIT",
-#        "--exclude=ExceptionRaceConditionIT",
-#        "--exclude=ExceptionsIT:ExRollbackDuplicateKeyCreated",
-#        "--exclude=ExceptionsIT:ExRollbackDuplicateKeyArchived",
-#        "--exclude=ConfigManagementServiceIT:CMConcurrentSetConflicting",
-#        "--exclude=CommandDeduplication",
-#        "--exclude=CommandServiceIT:CSduplicate",
-#        "--exclude=PartyManagementServiceIT:PMRejectionDuplicateHint",
-#    ],
-#)
-#
-#server_conformance_test(
-#    name = "hocon-conformance-test",
-#    hocon_config = """
-#    {
-#        ledger.participants.default.api-server {
-#            seeding=testing-weak
-#            user-management.enabled=true
-#        }
-#    }
-#    """,
-#    servers = SERVERS_HOCON,
-#    test_tool_args = [
-#        "--verbose",
-#    ],
-#)
-#
-## By default, participants are tuned for performance. The buffers and caches used by the participant
-## are by default so large that they are not filled by the small amount of data produced by the conformance test.
-## We run one conformance test with small buffer/cache sizes to make sure we cover cases where data doesn't fit
-## into a cache or where multiple buffers have to be combined.
-#server_conformance_test(
-#    name = "hocon-conformance-test-tiny-buffers",
-#    hocon_config = """
-#    {
-#      ledger.participants.default {
-#        api-server {
-#          seeding = testing-weak
-#          user-management {
-#            enabled = true
-#            max-cache-size = 2
-#          }
-#        }
-#        index {
-#          max-contract-key-state-cache-size = 2
-#          max-contract-state-cache-size = 2
-#          acs-id-page-size = 2
-#          events-page-size = 2
-#        }
-#      }
-#    }
-#    """,
-#    servers = {"postgresql": SERVERS_HOCON["postgresql"]},
-#    test_tool_args = [
-#        "--verbose",
-#    ],
-#)
-#
-#conformance_test(
-#    name = "hocon-conformance-test-static-time",
-#    ports = [6865],
-#    server = ":hocon-app",
-#    server_hocon_config = """
-#    {
-#      ledger.participants.default.api-server {
-#        seeding=testing-weak
-#        time-provider-type=static
-#      }
-#    }
-#    """,
-#    test_tool_args = [
-#        "--verbose",
-#    ],
-#)
-#
-#conformance_test(
-#    name = "hocon-conformance-test-in-memory-fan-out",
-#    ports = [6865],
-#    server = ":hocon-app",
-#    server_hocon_config = """
-#    {
-#      ledger.participants.default {
-#        api-server {
-#          seeding = testing-weak
-#        }
-#        index {
-#          max-transactions-in-memory-fan-out-buffer-size=10
-#          enable-in-memory-fan-out-for-ledger-api=true
-#        }
-#      }
-#    }
-#    """,
-#    test_tool_args = [
-#        "--verbose",
-#    ],
-#)
-#

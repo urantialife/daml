@@ -68,7 +68,7 @@ def daml_script_test(compiler_version, runner_version):
 
     if use_sandbox_on_x:
         server = "@daml-sdk-{version}//:sandbox-on-x".format(version = runner_version)
-        server_args = ["run-legacy", "--participant", "participant-id=sandbox,port=6865"]
+        server_args = ["--participant", "participant-id=sandbox,port=6865"]
         server_files = []
         server_files_prefix = ""
     else:
