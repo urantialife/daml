@@ -90,7 +90,7 @@ object CliSandboxOnXRunner {
       originalConfig: CliConfig[BridgeConfig]
   )(implicit context: ResourceContext): Resource[Unit] = {
     val configAdaptor: BridgeConfigAdaptor = new BridgeConfigAdaptor
-    val sandboxOnXConfig: SandboxOnXConfig = toSandboxOnXConfig(originalConfig)
+    val sandboxOnXConfig: SandboxOnXConfig = toSandboxOnXConfig(configAdaptor, originalConfig)
     logger.withoutContext.info(s"Config used: ${ConfigRenderer.render(sandboxOnXConfig)}")
     SandboxOnXRunner
       .run(
