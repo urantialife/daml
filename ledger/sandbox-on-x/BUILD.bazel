@@ -338,9 +338,6 @@ da_scala_library(
     name = "sandbox-on-x-app-lib",
     srcs = glob(["src/app/scala/**/*.scala"]),
     resources = glob(["src/app/resources/**/*"]),
-    scala_deps = [
-        "@maven//:com_github_pureconfig_pureconfig_core",
-    ],
     tags = ["maven_coordinates=com.daml:sandbox-on-x-app:__VERSION__"],
     visibility = ["//visibility:public"],
     deps = [
@@ -357,9 +354,6 @@ da_scala_library(
     name = "sandbox-on-x-test-app",
     srcs = glob(["src/test/app/scala/**/*.scala"]),
     resources = glob(["src/test/app/resources/**/*"]),
-    scala_deps = [
-        "@maven//:com_github_pureconfig_pureconfig_core",
-    ],
     visibility = ["//visibility:public"],
     deps = [
         ":sandbox-on-x",

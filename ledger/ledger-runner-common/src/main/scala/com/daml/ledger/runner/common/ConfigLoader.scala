@@ -8,15 +8,15 @@ import pureconfig.{ConfigReader, ConfigSource, Derivation}
 
 trait ConfigLoader {
 
-  def loadConfig[T](namespace: String, config: com.typesafe.config.Config)(implicit
+  def loadConfig[T](config: com.typesafe.config.Config)(implicit
       reader: Derivation[ConfigReader[T]]
   ): Result[T] =
-    ConfigSource.fromConfig(config).at(namespace).load[T]
+    ConfigSource.fromConfig(config).load[T]
 
-  def loadConfigUnsafe[T](namespace: String, config: com.typesafe.config.Config)(implicit
+  def loadConfigUnsafe[T](config: com.typesafe.config.Config)(implicit
       reader: Derivation[ConfigReader[T]]
   ): T = {
-    loadConfig(namespace, config) match {
+    loadConfig(config) match {
       case Left(value) => sys.error(value.toList.map(_.description).mkString(","))
       case Right(value) => value
     }

@@ -1,7 +1,6 @@
 // Copyright (c) 2022 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
-
-package com.daml.ledger.runner.common
+package com.daml.ledger.sandbox
 
 import com.typesafe.config.{ConfigRenderOptions, ConfigValue}
 
@@ -14,15 +13,16 @@ object ConfigRenderer {
     .setFormatted(true)
 
   private def toConfig(
-      config: Config
-  )(implicit writer: pureconfig.ConfigWriter[Config]): ConfigValue =
+      config: SandboxOnXConfig
+  )(implicit writer: pureconfig.ConfigWriter[SandboxOnXConfig]): ConfigValue =
     writer.to(config)
 
   def render(configValue: ConfigValue): String =
     configValue.render(renderOptions)
 
-  def render(config: Config): String = {
-    import PureConfigReaderWriter._
+  def render(
+      config: SandboxOnXConfig
+  )(implicit writer: pureconfig.ConfigWriter[SandboxOnXConfig]): String = {
     val configValue = toConfig(config)
     render(configValue)
   }

@@ -58,7 +58,7 @@ object CliSandboxOnXRunner {
       .map(manipulateConfig)
       .flatMap(owner)
 
-  def owner(originalConfig: CliConfig[BridgeConfig]): ResourceOwner[Unit] =
+  private def owner(originalConfig: CliConfig[BridgeConfig]): ResourceOwner[Unit] =
     new ResourceOwner[Unit] {
       override def acquire()(implicit context: ResourceContext): Resource[Unit] = {
         val configAdaptor: BridgeConfigAdaptor = new BridgeConfigAdaptor
