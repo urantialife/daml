@@ -90,10 +90,10 @@ conformance_test(
         "//ledger/test-common/test-certificates:server.pem.enc",
         "//ledger/test-common/test-certificates:ca.crt",
     ],
+    hocon = True,
     lf_versions = lf_version_configuration_versions,
     ports = [6865],
     server = "//ledger/sandbox-on-x:conformance-test-postgres-bin",
-    hocon = True,
     server_hocon_config = """
         ledger.participants.default.api-server {
           seeding=testing-weak
@@ -126,10 +126,10 @@ conformance_test(
         "//ledger/test-common/test-certificates:server.pem.enc",
         "//ledger/test-common/test-certificates:ca.crt",
     ],
+    hocon = True,
     lf_versions = lf_version_configuration_versions,
     ports = [6865],
     server = "//ledger/sandbox-on-x:conformance-test-postgres-bin",
-    hocon = True,
     server_hocon_config = """
         ledger.participants.default.api-server {
           seeding=testing-weak
