@@ -346,7 +346,6 @@ da_scala_library(
         "//ledger/ledger-runner-common",
         "//libs-scala/contextualized-logging",
         "//libs-scala/resources",
-        "@maven//:com_typesafe_config",
     ],
 )
 
@@ -369,7 +368,6 @@ da_scala_library(
         "//libs-scala/ports",
         "//libs-scala/postgresql-testing",
         "//libs-scala/resources",
-        "@maven//:com_typesafe_config",
     ],
 )
 
@@ -442,6 +440,7 @@ conformance_test(
     ports = [6865],
     server = ":app",
     server_args = [
+        "run-legacy",
         "--contract-id-seeding=testing-weak",
         "--participant participant-id=example,port=6865",
         "--disable-conflict-checking",
@@ -465,6 +464,7 @@ conformance_test(
 server_conformance_test(
     name = "conformance-test",
     server_args = [
+        "run-legacy",
         "--contract-id-seeding=testing-weak",
         "--participant participant-id=example,port=6865",
         "--enable-user-management=true",
@@ -482,6 +482,7 @@ server_conformance_test(
 server_conformance_test(
     name = "conformance-test-tiny-buffers",
     server_args = [
+        "run-legacy",
         "--contract-id-seeding=testing-weak",
         "--participant participant-id=example,port=6865,contract-state-cache-max-size=2,contract-key-state-cache-max-size=2",
         "--enable-user-management=true",
@@ -501,6 +502,7 @@ conformance_test(
     ports = [6865],
     server = ":app",
     server_args = [
+        "run-legacy",
         "--contract-id-seeding=testing-weak",
         "--participant participant-id=example,port=6865",
         "--static-time",
@@ -515,6 +517,7 @@ conformance_test(
     ports = [6865],
     server = ":app",
     server_args = [
+        "run-legacy",
         "--contract-id-seeding=testing-weak",
         "--participant participant-id=example,port=6865",
         "--buffered-ledger-api-streams",
@@ -529,6 +532,7 @@ conformance_test(
     ports = [6865],
     server = ":app",
     server_args = [
+        "run-legacy",
         "--contract-id-seeding=testing-weak",
         "--participant participant-id=example,port=6865",
         "--ledger-api-transactions-buffer-max-size=3",
@@ -540,173 +544,174 @@ conformance_test(
     ],
 )
 
-SERVERS_HOCON = {
-    "h2database": {
-        "binary": ":hocon-app",
-    },
-    "postgresql": {
-        "binary": ":hocon-conformance-test-postgres-bin",
-    },
-    "oracle": {
-        "binary": ":hocon-conformance-test-oracle-bin",
-        "tags": oracle_tags,
-    },
-}
-
-da_scala_binary(
-    name = "hocon-app",
-    main_class = "com.daml.ledger.sandbox.HoconMain",
-    tags = [
-        "fat_jar",
-        "maven_coordinates=com.daml:sandbox-on-x-app-jar:__VERSION__",
-        "no_scala_version_suffix",
-    ],
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        "@maven//:ch_qos_logback_logback_classic",
-        "@maven//:ch_qos_logback_logback_core",
-        "@maven//:com_h2database_h2",
-    ],
-    deps = [
-        ":sandbox-on-x-app-lib",
-    ],
-)
-
-da_scala_binary(
-    name = "hocon-conformance-test-oracle-bin",
-    main_class = "com.daml.ledger.sandbox.HoconMainWithEphemeralOracleUser",
-    visibility = ["//visibility:public"],
-    runtime_deps = [],
-    deps = [
-        ":sandbox-on-x-test-app",
-    ],
-)
-
-da_scala_binary(
-    name = "hocon-conformance-test-postgres-bin",
-    main_class = "com.daml.ledger.sandbox.HoconMainWithEphemeralPostgresql",
-    visibility = ["//visibility:public"],
-    runtime_deps = [],
-    deps = [
-        ":sandbox-on-x-test-app",
-    ],
-)
-
-#Duplicated tests using new hocon-style configuration
-conformance_test(
-    name = "hocon-conformance-test-no-conflict-checking",
-    ports = [6865],
-    server = ":hocon-app",
-    server_hocon_config = """
-    {
-        ledger.participants.default.api-server {
-            seeding=testing-weak
-            user-management.enabled=true
-        }
-
-        bridge {
-            conflict-checking-enabled=false
-        }
-    }
-    """,
-    test_tool_args = [
-        "--verbose",
-        "--exclude=ClosedWorldIT",
-        "--exclude=ContractKeysIT",
-        "--exclude=SemanticTests",
-        "--exclude=RaceConditionIT",
-        "--exclude=ExceptionRaceConditionIT",
-        "--exclude=ExceptionsIT:ExRollbackDuplicateKeyCreated",
-        "--exclude=ExceptionsIT:ExRollbackDuplicateKeyArchived",
-        "--exclude=ConfigManagementServiceIT:CMConcurrentSetConflicting",
-        "--exclude=CommandDeduplication",
-        "--exclude=CommandServiceIT:CSduplicate",
-        "--exclude=PartyManagementServiceIT:PMRejectionDuplicateHint",
-    ],
-)
-
-server_conformance_test(
-    name = "hocon-conformance-test",
-    hocon_config = """
-    {
-        ledger.participants.default.api-server {
-            seeding=testing-weak
-            user-management.enabled=true
-        }
-    }
-    """,
-    servers = SERVERS_HOCON,
-    test_tool_args = [
-        "--verbose",
-    ],
-)
-
-# By default, participants are tuned for performance. The buffers and caches used by the participant
-# are by default so large that they are not filled by the small amount of data produced by the conformance test.
-# We run one conformance test with small buffer/cache sizes to make sure we cover cases where data doesn't fit
-# into a cache or where multiple buffers have to be combined.
-server_conformance_test(
-    name = "hocon-conformance-test-tiny-buffers",
-    hocon_config = """
-    {
-      ledger.participants.default {
-        api-server {
-          seeding = testing-weak
-          user-management {
-            enabled = true
-            max-cache-size = 2
-          }
-        }
-        index {
-          max-contract-key-state-cache-size = 2
-          max-contract-state-cache-size = 2
-          acs-id-page-size = 2
-          events-page-size = 2
-        }
-      }
-    }
-    """,
-    servers = {"postgresql": SERVERS_HOCON["postgresql"]},
-    test_tool_args = [
-        "--verbose",
-    ],
-)
-
-conformance_test(
-    name = "hocon-conformance-test-static-time",
-    ports = [6865],
-    server = ":hocon-app",
-    server_hocon_config = """
-    {
-      ledger.participants.default.api-server {
-        seeding=testing-weak
-        time-provider-type=static
-      }
-    }
-    """,
-    test_tool_args = [
-        "--verbose",
-    ],
-)
-
-conformance_test(
-    name = "hocon-conformance-test-in-memory-fan-out",
-    ports = [6865],
-    server = ":hocon-app",
-    server_hocon_config = """
-    {
-      ledger.participants.default {
-        api-server {
-          seeding = testing-weak
-        }
-        index {
-          max-transactions-in-memory-fan-out-buffer-size=10
-          enable-in-memory-fan-out-for-ledger-api=true
-        }
-      }
-    }
-    """,
-    test_tool_args = [
-        "--verbose",
-    ],
-)
+#SERVERS_HOCON = {
+#    "h2database": {
+#        "binary": ":hocon-app",
+#    },
+#    "postgresql": {
+#        "binary": ":hocon-conformance-test-postgres-bin",
+#    },
+#    "oracle": {
+#        "binary": ":hocon-conformance-test-oracle-bin",
+#        "tags": oracle_tags,
+#    },
+#}
+#
+#da_scala_binary(
+#    name = "hocon-app",
+#    main_class = "com.daml.ledger.sandbox.HoconMain",
+#    tags = [
+#        "fat_jar",
+#        "maven_coordinates=com.daml:sandbox-on-x-app-jar:__VERSION__",
+#        "no_scala_version_suffix",
+#    ],
+#    visibility = ["//visibility:public"],
+#    runtime_deps = [
+#        "@maven//:ch_qos_logback_logback_classic",
+#        "@maven//:ch_qos_logback_logback_core",
+#        "@maven//:com_h2database_h2",
+#    ],
+#    deps = [
+#        ":sandbox-on-x-app-lib",
+#    ],
+#)
+#
+#da_scala_binary(
+#    name = "hocon-conformance-test-oracle-bin",
+#    main_class = "com.daml.ledger.sandbox.HoconMainWithEphemeralOracleUser",
+#    visibility = ["//visibility:public"],
+#    runtime_deps = [],
+#    deps = [
+#        ":sandbox-on-x-test-app",
+#    ],
+#)
+#
+#da_scala_binary(
+#    name = "hocon-conformance-test-postgres-bin",
+#    main_class = "com.daml.ledger.sandbox.HoconMainWithEphemeralPostgresql",
+#    visibility = ["//visibility:public"],
+#    runtime_deps = [],
+#    deps = [
+#        ":sandbox-on-x-test-app",
+#    ],
+#)
+#
+##Duplicated tests using new hocon-style configuration
+#conformance_test(
+#    name = "hocon-conformance-test-no-conflict-checking",
+#    ports = [6865],
+#    server = ":hocon-app",
+#    server_hocon_config = """
+#    {
+#        ledger.participants.default.api-server {
+#            seeding=testing-weak
+#            user-management.enabled=true
+#        }
+#
+#        bridge {
+#            conflict-checking-enabled=false
+#        }
+#    }
+#    """,
+#    test_tool_args = [
+#        "--verbose",
+#        "--exclude=ClosedWorldIT",
+#        "--exclude=ContractKeysIT",
+#        "--exclude=SemanticTests",
+#        "--exclude=RaceConditionIT",
+#        "--exclude=ExceptionRaceConditionIT",
+#        "--exclude=ExceptionsIT:ExRollbackDuplicateKeyCreated",
+#        "--exclude=ExceptionsIT:ExRollbackDuplicateKeyArchived",
+#        "--exclude=ConfigManagementServiceIT:CMConcurrentSetConflicting",
+#        "--exclude=CommandDeduplication",
+#        "--exclude=CommandServiceIT:CSduplicate",
+#        "--exclude=PartyManagementServiceIT:PMRejectionDuplicateHint",
+#    ],
+#)
+#
+#server_conformance_test(
+#    name = "hocon-conformance-test",
+#    hocon_config = """
+#    {
+#        ledger.participants.default.api-server {
+#            seeding=testing-weak
+#            user-management.enabled=true
+#        }
+#    }
+#    """,
+#    servers = SERVERS_HOCON,
+#    test_tool_args = [
+#        "--verbose",
+#    ],
+#)
+#
+## By default, participants are tuned for performance. The buffers and caches used by the participant
+## are by default so large that they are not filled by the small amount of data produced by the conformance test.
+## We run one conformance test with small buffer/cache sizes to make sure we cover cases where data doesn't fit
+## into a cache or where multiple buffers have to be combined.
+#server_conformance_test(
+#    name = "hocon-conformance-test-tiny-buffers",
+#    hocon_config = """
+#    {
+#      ledger.participants.default {
+#        api-server {
+#          seeding = testing-weak
+#          user-management {
+#            enabled = true
+#            max-cache-size = 2
+#          }
+#        }
+#        index {
+#          max-contract-key-state-cache-size = 2
+#          max-contract-state-cache-size = 2
+#          acs-id-page-size = 2
+#          events-page-size = 2
+#        }
+#      }
+#    }
+#    """,
+#    servers = {"postgresql": SERVERS_HOCON["postgresql"]},
+#    test_tool_args = [
+#        "--verbose",
+#    ],
+#)
+#
+#conformance_test(
+#    name = "hocon-conformance-test-static-time",
+#    ports = [6865],
+#    server = ":hocon-app",
+#    server_hocon_config = """
+#    {
+#      ledger.participants.default.api-server {
+#        seeding=testing-weak
+#        time-provider-type=static
+#      }
+#    }
+#    """,
+#    test_tool_args = [
+#        "--verbose",
+#    ],
+#)
+#
+#conformance_test(
+#    name = "hocon-conformance-test-in-memory-fan-out",
+#    ports = [6865],
+#    server = ":hocon-app",
+#    server_hocon_config = """
+#    {
+#      ledger.participants.default {
+#        api-server {
+#          seeding = testing-weak
+#        }
+#        index {
+#          max-transactions-in-memory-fan-out-buffer-size=10
+#          enable-in-memory-fan-out-for-ledger-api=true
+#        }
+#      }
+#    }
+#    """,
+#    test_tool_args = [
+#        "--verbose",
+#    ],
+#)
+#

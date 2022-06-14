@@ -10,7 +10,8 @@ import org.scalatest.{Assertion, OptionValues}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
-import scopt.OptionParser
+import scopt.OParser
+
 import java.io.File
 import java.time.Duration
 
@@ -40,6 +41,7 @@ final class CliConfigSpec
   }
 
   private val minimalValidOptions = List(
+    "run-legacy",
     participantOption,
     s"$fixedParticipantSubOptions,$jdbcUrlSubOption=${TestJdbcValues.jdbcFromCli}",
   )
@@ -50,7 +52,7 @@ final class CliConfigSpec
   ): Option[CliConfig[Unit]] =
     CliConfig.parse(
       name = "Test",
-      extraOptions = (_: OptionParser[CliConfig[Unit]]) => (),
+      extraOptions = OParser.builder[CliConfig[Unit]].note(""),
       defaultExtra = (),
       args = parameters,
       getEnvVar = getEnvVar,
@@ -60,10 +62,7 @@ final class CliConfigSpec
       parameters: Iterable[String] = Seq.empty
   ): Option[CliConfig[Unit]] =
     configParser(
-      Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
-      ) ++ parameters
+      minimalValidOptions ++ parameters
     )
 
   private def checkOptionFail(parameters: Iterable[String]): Assertion = {
@@ -75,8 +74,8 @@ final class CliConfigSpec
   it should "succeed when server's private key is encrypted and secret-url is provided" in {
     val actual = configParser(
       Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
+        "run-legacy",
+        "--participant=participant-id=example,port=0",
         "--pem",
         "key.enc",
         "--tls-secrets-url",
@@ -99,8 +98,8 @@ final class CliConfigSpec
   it should "fail when server's private key is encrypted but secret-url is not provided" in {
     configParser(
       Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
+        "run-legacy",
+        "--participant=participant-id=example,port=0",
         "--pem",
         "key.enc",
       )
@@ -110,8 +109,8 @@ final class CliConfigSpec
   it should "fail parsing a bogus TLS version" in {
     configParser(
       Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
+        "run-legacy",
+        "--participant=participant-id=example,port=0",
         "--min-tls-version",
         "111",
       )
@@ -121,8 +120,8 @@ final class CliConfigSpec
   it should "succeed parsing a supported TLS version" in {
     val actual = configParser(
       Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
+        "run-legacy",
+        "--participant=participant-id=example,port=0",
         "--min-tls-version",
         "1.3",
       )
@@ -140,8 +139,8 @@ final class CliConfigSpec
   it should "succeed when server's private key is in plaintext and secret-url is not provided" in {
     val actual = configParser(
       Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
+        "run-legacy",
+        "--participant=participant-id=example,port=0",
         "--pem",
         "key.txt",
       )
@@ -160,7 +159,7 @@ final class CliConfigSpec
   }
 
   it should "fail if a participant is not provided in run mode" in {
-    configParser(Seq.empty) shouldEqual None
+    configParser(Seq("run-legacy")) shouldEqual None
   }
 
   it should "fail if a participant is not provided when dumping the index metadata" in {
@@ -181,6 +180,7 @@ final class CliConfigSpec
     val jdbcFromCli = "command-line-jdbc"
     val config = configParser(
       Seq(
+        "run-legacy",
         participantOption,
         s"$fixedParticipantSubOptions,$jdbcUrlSubOption=${TestJdbcValues.jdbcFromCli}",
       )
@@ -191,7 +191,11 @@ final class CliConfigSpec
 
   it should "get the jdbc string from the environment when provided" in {
     val config = configParser(
-      Seq(participantOption, s"$fixedParticipantSubOptions,$jdbcUrlEnvSubOption=$jdbcEnvVar"),
+      Seq(
+        "run-legacy",
+        participantOption,
+        s"$fixedParticipantSubOptions,$jdbcUrlEnvSubOption=$jdbcEnvVar",
+      ),
       { case `jdbcEnvVar` => Some(TestJdbcValues.jdbcFromEnv) },
     ).getOrElse(parsingFailure())
     config.participants.head.serverJdbcUrl should be(TestJdbcValues.jdbcFromEnv)
@@ -200,7 +204,11 @@ final class CliConfigSpec
   it should "return the default when env variable not provided" in {
     val defaultJdbc = ParticipantConfig.defaultIndexJdbcUrl(participantId)
     val config = configParser(
-      Seq(participantOption, s"$fixedParticipantSubOptions,$jdbcUrlEnvSubOption=$jdbcEnvVar")
+      Seq(
+        "run-legacy",
+        participantOption,
+        s"$fixedParticipantSubOptions,$jdbcUrlEnvSubOption=$jdbcEnvVar",
+      )
     ).getOrElse(parsingFailure())
 
     config.participants.head.serverJdbcUrl should be(defaultJdbc)
@@ -244,36 +252,27 @@ final class CliConfigSpec
 
   it should "handle '--enable-user-management' flag correctly" in {
     configParser(
-      Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
-        "--enable-user-management",
+      minimalValidOptions ++ Seq(
+        "--enable-user-management"
       )
     ) shouldBe None
 
     configParser(
-      Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
+      minimalValidOptions ++ Seq(
         "--enable-user-management",
         "false",
       )
     ).value.userManagementConfig.enabled shouldBe false
 
     configParser(
-      Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
+      minimalValidOptions ++ Seq(
         "--enable-user-management",
         "true",
       )
     ).value.userManagementConfig.enabled shouldBe true
 
     configParser(
-      Seq(
-        dumpIndexMetadataCommand,
-        "some-jdbc-url",
-      )
+      minimalValidOptions
     ).value.userManagementConfig.enabled shouldBe false
   }
 

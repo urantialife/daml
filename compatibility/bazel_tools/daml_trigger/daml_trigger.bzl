@@ -130,7 +130,7 @@ def daml_trigger_test(compiler_version, runner_version):
     use_sandbox_on_x = versions.is_at_least("2.0.0", runner_version) and not use_canton
     if use_sandbox_on_x:
         server = "@daml-sdk-{version}//:sandbox-on-x".format(version = runner_version)
-        server_args = ["--participant", "participant-id=sandbox,port=6865"]
+        server_args = ["run-legacy", "--participant", "participant-id=sandbox,port=6865"]
         server_files = []
         server_files_prefix = ""
     else:

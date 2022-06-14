@@ -92,7 +92,7 @@ object ConfigConverter {
         IndexServiceConfig.DefaultMaxTransactionsInMemoryFanOutBufferSize,
       metricsReporter = sandboxConfig.metricsReporter,
       metricsReportingInterval = sandboxConfig.metricsReportingInterval.toJava,
-      mode = Mode.Run,
+      mode = Mode.RunLegacy,
       participants = Seq(
         singleCombinedParticipant
       ),

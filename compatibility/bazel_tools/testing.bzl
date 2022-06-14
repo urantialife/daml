@@ -1148,7 +1148,7 @@ def sdk_platform_test(sdk_version, platform_version):
                     runner = "@//bazel_tools/client_server:runner",
                     runner_args = ["6865"],
                     server = sandbox_on_x,
-                    server_args = ["--participant participant-id=example,port=6865"] + sandbox_on_x_args + extra_sandbox_on_x_args,
+                    server_args = ["run-legacy --participant participant-id=example,port=6865"] + sandbox_on_x_args + extra_sandbox_on_x_args,
                     tags = ["exclusive", sdk_version, platform_version] + extra_tags(sdk_version, platform_version),
                 )
                 client_server_test(
@@ -1161,7 +1161,7 @@ def sdk_platform_test(sdk_version, platform_version):
                     runner = "@//bazel_tools/client_server:runner",
                     runner_args = ["6865"],
                     server = ":sandbox-with-postgres-{}".format(platform_version),
-                    server_args = [platform_version, "sandbox-on-x", "--participant participant-id=example,port=6865,server-jdbc-url=__jdbcurl__"] + sandbox_on_x_args + extra_sandbox_on_x_args,
+                    server_args = [platform_version, "sandbox-on-x", "run-legacy --participant participant-id=example,port=6865,server-jdbc-url=__jdbcurl__"] + sandbox_on_x_args + extra_sandbox_on_x_args,
                     tags = ["exclusive", sdk_version, platform_version] + extra_tags(sdk_version, platform_version),
                 ) if is_linux else None
         else:

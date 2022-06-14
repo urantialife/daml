@@ -12,6 +12,7 @@ object MainWithEphemeralPostgresql extends PostgresAround {
     connectToPostgresqlServer()
     val database = createNewRandomDatabase()
     sys.addShutdownHook(disconnectFromPostgresqlServer())
+    System.setProperty("DEFAULT_PARTICIPANT_DATABASE_JDBC_URL", database.url)
     new ProgramResource(
       owner = CliSandboxOnXRunner.owner(
         args = args,

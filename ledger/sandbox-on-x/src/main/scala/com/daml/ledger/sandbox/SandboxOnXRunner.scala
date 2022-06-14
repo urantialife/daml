@@ -10,13 +10,7 @@ import akka.stream.scaladsl.Sink
 import com.codahale.metrics.{InstrumentedExecutorService, MetricRegistry}
 import com.daml.api.util.TimeProvider
 import com.daml.buildinfo.BuildInfo
-import com.daml.ledger.api.auth.{
-  AuthService,
-  AuthServiceJWT,
-  AuthServiceNone,
-  AuthServiceStatic,
-  AuthServiceWildcard,
-}
+import com.daml.ledger.api.auth._
 import com.daml.ledger.api.health.HealthChecks
 import com.daml.ledger.api.v1.experimental_features.{
   CommandDeduplicationFeatures,
@@ -24,11 +18,13 @@ import com.daml.ledger.api.v1.experimental_features.{
   CommandDeduplicationType,
   ExperimentalContractIds,
 }
+import com.daml.ledger.configuration.LedgerId
 import com.daml.ledger.offset.Offset
 import com.daml.ledger.participant.state.index.v2.IndexService
 import com.daml.ledger.participant.state.v2.metrics.{TimedReadService, TimedWriteService}
 import com.daml.ledger.participant.state.v2.{ReadService, Update, WriteService}
 import com.daml.ledger.resources.{Resource, ResourceContext, ResourceOwner}
+import com.daml.ledger.runner.common.MetricsConfig.MetricRegistryType
 import com.daml.ledger.runner.common._
 import com.daml.ledger.sandbox.bridge.{BridgeMetrics, LedgerBridge}
 import com.daml.lf.data.Ref
@@ -39,33 +35,51 @@ import com.daml.metrics.{JvmMetricSet, Metrics}
 import com.daml.platform.apiserver._
 import com.daml.platform.configuration.ServerRole
 import com.daml.platform.indexer.StandaloneIndexerServer
+import com.daml.platform.store.DbSupport.ParticipantDataSourceConfig
+import com.daml.platform.store.interning.StringInterningView
 import com.daml.platform.store.{DbSupport, DbType, LfValueTranslationCache}
 import com.daml.platform.usermanagement.{PersistentUserManagementStore, UserManagementConfig}
-import com.daml.resources.{AbstractResourceOwner, ProgramResource}
+import com.daml.ports.Port
+import com.daml.resources.AbstractResourceOwner
+import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
 
+import java.io.File
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
-import scala.util.chaining._
-import com.daml.ledger.configuration.LedgerId
-import com.daml.ledger.runner.common.MetricsConfig.MetricRegistryType
-import com.daml.platform.store.DbSupport.ParticipantDataSourceConfig
-import com.daml.ports.Port
-import com.daml.platform.store.interning.StringInterningView
-
 import scala.util.Try
+import scala.util.chaining._
 
 object SandboxOnXRunner {
   val RunnerName = "sandbox-on-x"
   private val logger = ContextualizedLogger.get(getClass)
 
-  def run(config: com.typesafe.config.Config): Unit = {
-    val sandboxOnXConfig: SandboxOnXConfig = ConfigLoader.loadConfigUnsafe[SandboxOnXConfig](config)
-    logger.withoutContext.info(s"Config used: ${ConfigRenderer.render(sandboxOnXConfig)}")
-    val configAdaptor: BridgeConfigAdaptor = new BridgeConfigAdaptor
-    new ProgramResource(
-      owner =
-        SandboxOnXRunner.owner(configAdaptor, sandboxOnXConfig.ledger, sandboxOnXConfig.bridge)
-    ).run(ResourceContext.apply)
+  private def mergeConfigs(
+      firstConfig: TypesafeConfig,
+      otherConfigs: Seq[TypesafeConfig],
+  ): TypesafeConfig =
+    otherConfigs.foldLeft(firstConfig)((combined, config) => config.withFallback(combined))
+
+  def toTypesafeConfig(
+      configFiles: Seq[File] = Seq(),
+      configMap: Map[String, String] = Map(),
+  ): TypesafeConfig = {
+    val fileConfigs = configFiles.map(ConfigFactory.parseFile)
+
+    val mergedUserConfigs = fileConfigs match {
+      case Nil => ConfigFactory.empty()
+      case head :: tail =>
+        mergeConfigs(head, tail)
+    }
+
+    ConfigFactory.invalidateCaches()
+    val mergedConfig = mergedUserConfigs.withFallback(ConfigFactory.load())
+
+    val configFromMap = {
+      import scala.jdk.CollectionConverters._
+      ConfigFactory.parseMap(configMap.asJava)
+    }
+
+    mergeConfigs(mergedConfig, Seq(configFromMap))
   }
 
   def owner(
@@ -75,7 +89,7 @@ object SandboxOnXRunner {
   ): AbstractResourceOwner[ResourceContext, Port] = {
     new ResourceOwner[Port] {
       override def acquire()(implicit context: ResourceContext): Resource[Port] =
-        SandboxOnXRunner.run(configAdaptor, config, bridgeConfig)
+        run(configAdaptor, config, bridgeConfig)
     }
   }
 
