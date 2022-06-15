@@ -100,7 +100,7 @@ main = do
 
 
 supportsSandboxOnX :: SemVer.Version -> Bool
-supportsSandboxOnX v = v >= (SemVer.initial & SemVer.major .~ 2)
+supportsSandboxOnX v = v == SemVer.initial || v >= (SemVer.initial & SemVer.major .~ 2)
 
 supportsSandboxOnXHocon :: SemVer.Version -> Bool
 supportsSandboxOnXHocon v = v == SemVer.initial
