@@ -94,6 +94,7 @@ conformance_test(
     lf_versions = lf_version_configuration_versions,
     ports = [6865],
     server = "//ledger/sandbox-on-x:conformance-test-postgres-bin",
+    server_args = ["run"],
     server_hocon_config = """
         ledger.participants.default.api-server {
           seeding=testing-weak
@@ -130,6 +131,7 @@ conformance_test(
     lf_versions = lf_version_configuration_versions,
     ports = [6865],
     server = "//ledger/sandbox-on-x:conformance-test-postgres-bin",
+    server_args = ["run"],
     server_hocon_config = """
         ledger.participants.default.api-server {
           seeding=testing-weak

@@ -157,23 +157,33 @@ object CliConfig {
     val builder = OParser.builder[CliConfig[Extra]]
     OParser.sequence(
       builder
-        .opt[Map[String, String]]('C', "config key-value's")
+        .cmd("run")
         .text(
-          "Set configuration key value pairs directly. Can be useful for providing simple short config info."
+          "Run Sandbox-On-X with configuration provided in HOCON files."
         )
-        .valueName("<key1>=<value1>,<key2>=<value2>")
-        .unbounded()
-        .action { (map, cli) =>
-          cli.copy(configMap = map ++ cli.configMap)
-        },
-      builder
-        .opt[Seq[File]]('c', "config")
-        .text(
-          "Set configuration file(s). If several configuration files assign values to the same key, the last value is taken."
+        .action((_, config) => config.copy(mode = Mode.Run))
+        .children(
+          OParser.sequence(
+            builder
+              .opt[Map[String, String]]('C', "config key-value's")
+              .text(
+                "Set configuration key value pairs directly. Can be useful for providing simple short config info."
+              )
+              .valueName("<key1>=<value1>,<key2>=<value2>")
+              .unbounded()
+              .action { (map, cli) =>
+                cli.copy(configMap = map ++ cli.configMap)
+              },
+            builder
+              .opt[Seq[File]]('c', "config")
+              .text(
+                "Set configuration file(s). If several configuration files assign values to the same key, the last value is taken."
+              )
+              .valueName("<file1>,<file2>,...")
+              .unbounded()
+              .action((files, cli) => cli.copy(configFiles = cli.configFiles ++ files)),
+          )
         )
-        .valueName("<file1>,<file2>,...")
-        .unbounded()
-        .action((files, cli) => cli.copy(configFiles = cli.configFiles ++ files)),
     )
   }
 
@@ -186,7 +196,7 @@ object CliConfig {
     OParser.sequence(
       cmd("run-legacy")
         .text(
-          "Connect to the index db. Print ledger id, ledger end and integration API version and quit."
+          "Run Sandbox-On-X in a legacy mode with cli-driven arguments."
         )
         .action((_, config) => config.copy(mode = Mode.RunLegacy))
         .children(OParser.sequence(parser(getEnvVar), extraOptions))
