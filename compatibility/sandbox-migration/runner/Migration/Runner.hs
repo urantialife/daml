@@ -145,7 +145,7 @@ withSandbox (AppendOnly appendOnly) assistant jdbcUrl f =
     -- The CLI of sandbox on x is not compatible with Sandbox
     -- so rather than using the utilities from the Sandbox module
     -- we spin it up directly.
-    sandboxOnXCommand = supportsSandboxOnXHocon version then ["run-legacy"] else ["run"]
+    sandboxOnXCommand = ["run-legacy" | supportsSandboxOnXHocon version]
 
     withSandboxOnX portFile f = do
           let args =

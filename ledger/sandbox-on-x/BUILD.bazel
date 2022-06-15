@@ -440,7 +440,6 @@ conformance_test(
     hocon = True,
     ports = [6865],
     server = ":app",
-    server_args = ["run"],
     server_hocon_config = """
     {
         ledger.participants.default.api-server.seeding=testing-weak
@@ -472,7 +471,6 @@ server_conformance_test(
             user-management.enabled=true
         }
     """,
-    server_args = ["run"],
     servers = SERVERS,
     test_tool_args = [
         "--verbose",
@@ -505,7 +503,6 @@ server_conformance_test(
       }
     }
     """,
-    server_args = ["run"],
     servers = {"postgresql": SERVERS["postgresql"]},
     test_tool_args = [
         "--verbose",
@@ -517,7 +514,6 @@ conformance_test(
     hocon = True,
     ports = [6865],
     server = ":app",
-    server_args = ["run"],
     server_hocon_config = """
     {
       ledger.participants.default.api-server {
@@ -536,7 +532,6 @@ conformance_test(
     hocon = True,
     ports = [6865],
     server = ":app",
-    server_args = ["run"],
     server_hocon_config = """
     {
       ledger.participants.default {
@@ -559,7 +554,6 @@ conformance_test(
     hocon = True,
     ports = [6865],
     server = ":app",
-    server_args = ["run"],
     server_hocon_config = """
     {
       ledger.participants.default {
