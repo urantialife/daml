@@ -146,7 +146,9 @@ beforeAll(async () => {
     `--participant=participant-id=sandbox,port=0,port-file=${SANDBOX_PORT_FILE_NAME}`
   ];
 
-  const sandboxOnXCommand = !!process.env.SANDBOX_COMMAND ? [process.env.SANDBOX_COMMAND] : []
+  const sandboxOnXCommand = semver.gte( process.env.SANDBOX_VERSION, "2.3.0-snapshot.20220611.10066.0.458cfc43" ) || process.env.SANDBOX_VERSION === "0.0.0"
+      ? ["run"]
+      : [];
 
   const sandboxOptions = process.env.SANDBOX_VERSION[0] == "1" ? kvSandboxOptions : sandboxOnXCommand.concat(sandboxOnXOptions);
 

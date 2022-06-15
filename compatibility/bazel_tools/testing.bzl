@@ -984,7 +984,6 @@ def create_daml_app_test(
         messaging_patch,
         codegen_output,
         dar,
-        sandbox_command,
         data = [],
         **kwargs):
     native.sh_test(
@@ -1013,7 +1012,6 @@ def create_daml_app_test(
             "$(rootpath //bazel_tools/create-daml-app:index.test.ts)",
             "$(rootpath %s)" % codegen_output,
             "$(rootpath %s)" % dar,
-            sandbox_command,
         ],
         data = data + depset(direct = [
             "//bazel_tools/create-daml-app:runner",
@@ -1098,7 +1096,7 @@ def sdk_platform_test(sdk_version, platform_version):
 
     sandbox_on_x = "@daml-sdk-{}//:sandbox-on-x".format(platform_version)
     sandbox_on_x_args = ["--contract-id-seeding=testing-weak", "--implicit-party-allocation=false", "--mutable-contract-state-cache"]
-    sandbox_on_x_cmd = ["run-legacy"] if versions.is_at_least("0.0.0", platform_version) else []
+    sandbox_on_x_cmd = ["run-legacy"] if versions.is_at_least("2.3.0-snapshot.20220611.10066.0.458cfc43", platform_version) else []
 
     json_api_args = ["json-api"]
 
@@ -1268,7 +1266,6 @@ def sdk_platform_test(sdk_version, platform_version):
             daml = daml_assistant,
             sandbox = sandbox_on_x if versions.is_at_least("2.0.0", platform_version) else sandbox,
             sandbox_version = platform_version,
-            sandbox_command = "run-legacy" if versions.is_at_least("0.0.0", platform_version) else "",
             json_api = json_api,
             json_api_version = platform_version,
             daml_types = "@daml-sdk-{}//:daml-types.tgz".format(sdk_version),
