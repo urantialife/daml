@@ -242,8 +242,14 @@ dev_env_tool(
 )
 
 node_repositories(
+    # Using `dev_env_tool` introduces an additional layer of symlink
+    # indirection. Bazel doesn't track dependencies through symbolic links.
+    # Occasionally, this can cause build failures on CI if a build is not
+    # invalidated despite a change of an original source. To avoid such issues
+    # we use the `nixpkgs_package` directly.
+    node_version = "16.13.0",
+    package_json = ["//:package.json"],
     vendored_node = "@nodejs_dev_env" if is_windows else "@node_nix",
-    yarn_version = "1.22.4",
 )
 
 nixpkgs_package(
