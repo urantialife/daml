@@ -31,7 +31,7 @@ case class ApiServerConfig(
     party: PartyConfiguration = ApiServerConfig.DefaultParty,
     port: Port = ApiServerConfig.DefaultPort,
     portFile: Option[Path] = ApiServerConfig.DefaultPortFile,
-    rateLimitingConfig: Option[RateLimitingConfig] = ApiServerConfig.DefaultRateLimitingConfig,
+    rateLimit: Option[RateLimitingConfig] = ApiServerConfig.DefaultRateLimitingConfig,
     seeding: Seeding = ApiServerConfig.DefaultSeeding,
     timeProviderType: TimeProviderType = ApiServerConfig.DefaultTimeProviderType,
     tls: Option[TlsConfiguration] = ApiServerConfig.DefaultTls,
