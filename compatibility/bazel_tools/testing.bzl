@@ -984,7 +984,7 @@ def create_daml_app_test(
         messaging_patch,
         codegen_output,
         dar,
-        sandbox_run_legacy,
+        sandbox_command,
         data = [],
         **kwargs):
     native.sh_test(
@@ -1013,7 +1013,7 @@ def create_daml_app_test(
             "$(rootpath //bazel_tools/create-daml-app:index.test.ts)",
             "$(rootpath %s)" % codegen_output,
             "$(rootpath %s)" % dar,
-            sandbox_run_legacy,
+            sandbox_command,
         ],
         data = data + depset(direct = [
             "//bazel_tools/create-daml-app:runner",
@@ -1268,6 +1268,7 @@ def sdk_platform_test(sdk_version, platform_version):
             daml = daml_assistant,
             sandbox = sandbox_on_x if versions.is_at_least("2.0.0", platform_version) else sandbox,
             sandbox_version = platform_version,
+            sandbox_command = "run-legacy" if versions.is_at_least("0.0.0", platform_version) else "",
             json_api = json_api,
             json_api_version = platform_version,
             daml_types = "@daml-sdk-{}//:daml-types.tgz".format(sdk_version),
@@ -1280,5 +1281,4 @@ def sdk_platform_test(sdk_version, platform_version):
             # Yarn gets really unhappy if it is called in parallel
             # so we mark this exclusive for now.
             tags = extra_tags(sdk_version, platform_version) + ["exclusive"],
-            sandbox_run_legacy = versions.is_at_least("0.0.0", platform_version),
         )

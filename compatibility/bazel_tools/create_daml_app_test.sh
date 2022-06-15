@@ -39,7 +39,7 @@ TEST_DEPS="$(rlocation "$TEST_WORKSPACE/${14}")"
 TEST_TS="$(rlocation "$TEST_WORKSPACE/${15}")"
 CODEGEN_OUTPUT="$(canonicalize_rlocation "${16}")"
 export DAR_PATH="$(canonicalize_rlocation "${17}")"
-export SANDBOX_RUN_LEGACY="${18}"
+export SANDBOX_COMMAND="${18}"
 
 "$RUNNER" \
   --daml "$DAML" \

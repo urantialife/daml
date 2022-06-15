@@ -146,7 +146,7 @@ beforeAll(async () => {
     `--participant=participant-id=sandbox,port=0,port-file=${SANDBOX_PORT_FILE_NAME}`
   ];
 
-  const sandboxOnXCommand = process.env.SANDBOX_RUN_LEGACY? ["run-legacy"] : []
+  const sandboxOnXCommand = !!process.env.SANDBOX_COMMAND ? [process.env.SANDBOX_COMMAND] : []
 
   const sandboxOptions = process.env.SANDBOX_VERSION[0] == "1" ? kvSandboxOptions : sandboxOnXCommand.concat(sandboxOnXOptions);
 
