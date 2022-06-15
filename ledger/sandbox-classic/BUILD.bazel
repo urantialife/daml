@@ -163,7 +163,6 @@ server_conformance_test(
     server_args = [
         "--contract-id-seeding=testing-weak",
     ],
-    server_args = ["run"],
     servers = {"postgresql": SERVERS["postgresql"]},
     test_tool_args = [
         "--concurrent-test-runs=1",  # sandbox classic doesn't scale well with concurrent tests (almost no effect on overall run time)
@@ -180,7 +179,6 @@ server_conformance_test(
     server_args = [
         "--contract-id-seeding=testing-weak",
     ],
-    server_args = ["run"],
     servers = {"h2database": SERVERS["h2database"]},
     test_tool_args = [
         "--concurrent-test-runs=1",  # sandbox classic doesn't scale well with concurrent tests (almost no effect on overall run time)
@@ -197,7 +195,6 @@ server_conformance_test(
         "--static-time",
         "--contract-id-seeding=testing-weak",
     ],
-    server_args = ["run"],
     servers = APPEND_ONLY_SCHEMA_SERVERS,
     test_tool_args = [
         "--concurrent-test-runs=1",  # sandbox classic doesn't scale well with concurrent tests (almost no effect on overall run time)
