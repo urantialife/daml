@@ -984,6 +984,7 @@ def create_daml_app_test(
         messaging_patch,
         codegen_output,
         dar,
+        sandbox_run_legacy,
         data = [],
         **kwargs):
     native.sh_test(
@@ -1012,6 +1013,7 @@ def create_daml_app_test(
             "$(rootpath //bazel_tools/create-daml-app:index.test.ts)",
             "$(rootpath %s)" % codegen_output,
             "$(rootpath %s)" % dar,
+            sandbox_run_legacy,
         ],
         data = data + depset(direct = [
             "//bazel_tools/create-daml-app:runner",
@@ -1247,7 +1249,7 @@ def sdk_platform_test(sdk_version, platform_version):
         sdk_version = sdk_version,
         daml = daml_assistant,
         sandbox = sandbox_on_x if versions.is_at_least("2.0.0", platform_version) else sandbox,
-        sandbox_args = ["--contract-id-seeding=testing-weak", "--mutable-contract-state-cache", "--participant=participant-id=sandbox,port=0,port-file=__PORTFILE__"] if versions.is_at_least("2.0.0", platform_version) else ["sandbox", "--port=0", "--port-file=__PORTFILE__"],
+        sandbox_args = sandbox_on_x_cmd + ["--contract-id-seeding=testing-weak", "--mutable-contract-state-cache", "--participant=participant-id=sandbox,port=0,port-file=__PORTFILE__"] if versions.is_at_least("2.0.0", platform_version) else ["sandbox", "--port=0", "--port-file=__PORTFILE__"],
         size = "large",
         # We see timeouts here fairly regularly so we
         # increase the number of CPUs.
@@ -1278,4 +1280,5 @@ def sdk_platform_test(sdk_version, platform_version):
             # Yarn gets really unhappy if it is called in parallel
             # so we mark this exclusive for now.
             tags = extra_tags(sdk_version, platform_version) + ["exclusive"],
+            sandbox_run_legacy = versions.is_at_least("0.0.0", platform_version),
         )
