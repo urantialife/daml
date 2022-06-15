@@ -229,25 +229,22 @@ final class RateLimitingInterceptorSpec
 
     val limitStreamConfig = RateLimitingConfig.Default.copy(maxStreams = 2)
 
-    class Stream(val close: () => Future[Status], val status: Future[Status])
+    type CloseStream = () => Future[Status]
 
-    def stream(channel: Channel, id: String): Future[Stream] = {
+    def stream(channel: Channel, id: String): Future[CloseStream] = {
 
       // A large size is needed to avoid the streams closing on the server side before the limit is reached
       val size = 10000
 
-      val init = Promise[Stream]()
+      val init = Promise[CloseStream]()
       val status = Promise[Status]()
       val clientCall =
         channel.newCall(HelloServiceGrpc.METHOD_SERVER_STREAMING, CallOptions.DEFAULT)
 
-      val stream = new Stream(
-        close = () => {
-          clientCall.request(size - 1) // Request remaining messages
-          status.future
-        },
-        status = status.future,
-      )
+      val stream: CloseStream = () => {
+        clientCall.request(size - 1) // Request remaining messages
+        status.future
+      }
 
       clientCall.start(
         new ClientCall.Listener[HelloResponse] {
@@ -277,15 +274,15 @@ final class RateLimitingInterceptorSpec
       channel: Channel =>
         {
           for {
-            stream1 <- stream(channel, "s1") // Ok
-            stream2 <- stream(channel, "s2") // Ok
+            closeStream1 <- stream(channel, "s1") // Ok
+            closeStream2 <- stream(channel, "s2") // Ok
             activeStreams = metrics.daml.lapi.streams.active.getCount
-            stream3 <- stream(channel, "s3") // Limited
-            status1 <- stream1.close()
-            stream4 <- stream(channel, "s4") // Ok
-            status2 <- stream2.close()
-            status3 <- stream3.close() // Already closed
-            status4 <- stream4.close()
+            closeStream3 <- stream(channel, "s3") // Limited
+            status1 <- closeStream1()
+            closeStream4 <- stream(channel, "s4") // Ok
+            status2 <- closeStream2()
+            status3 <- closeStream3() // Already closed
+            status4 <- closeStream4()
           } yield {
             activeStreams shouldBe limitStreamConfig.maxStreams
             status1.getCode shouldBe Code.OK

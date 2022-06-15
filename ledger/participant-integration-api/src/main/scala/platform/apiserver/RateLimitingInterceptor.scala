@@ -45,6 +45,9 @@ private[apiserver] final class RateLimitingInterceptor(
     MetricName(metrics.daml.index.db.threadpool.connection, ServerRole.ApiServer.threadPoolSuffix),
   )
 
+  private val activeStreamsName = metrics.daml.lapi.streams.activeName
+  private val activeStreamsCounter = metrics.daml.lapi.streams.active
+
   override def interceptCall[ReqT, RespT](
       call: ServerCall[ReqT, RespT],
       headers: Metadata,
@@ -70,10 +73,10 @@ private[apiserver] final class RateLimitingInterceptor(
 
       case None =>
         val listener: ServerCall.Listener[ReqT] = next.startCall(
-          new OnCloseServerCall(call, () => metrics.daml.lapi.streams.active.dec()),
+          new OnCloseServerCall(call, () => activeStreamsCounter.dec()),
           headers,
         )
-        metrics.daml.lapi.streams.active.inc() // Only do after call above has returned
+        activeStreamsCounter.inc() // Only do after call above has returned
         listener
     }
 
@@ -84,20 +87,21 @@ private[apiserver] final class RateLimitingInterceptor(
       None
     } else {
       (for {
-        _ <- memoryOverloaded()
-        _ <- queueOverloaded(apiServices, config.maxApiServicesQueueSize)
-        _ <- queueOverloaded(indexDbThreadpool, config.maxApiServicesIndexDbQueueSize)
-        _ <- metricOverloaded(
+        _ <- memoryUnderLimit()
+        _ <- queueUnderLimit(apiServices, config.maxApiServicesQueueSize)
+        _ <- queueUnderLimit(indexDbThreadpool, config.maxApiServicesIndexDbQueueSize)
+        activeStreamsIfNotLimited = activeStreamsCounter.getCount + 1
+        _ <- metricUnderLimit(
           metricDescription = "Number of active streams",
-          name = metrics.daml.lapi.streams.activeName,
-          value = metrics.daml.lapi.streams.active.getCount + 1, // Once created
+          name = activeStreamsName,
+          value = activeStreamsIfNotLimited,
           limit = config.maxStreams,
         )
       } yield ()).fold(Some.apply, _ => None)
     }
   }
 
-  private def memoryOverloaded(): Either[String, Unit] = {
+  private def memoryUnderLimit(): Either[String, Unit] = {
     tenuredMemoryPool.fold[Either[String, Unit]](Right(())) { p =>
       if (p.isCollectionUsageThresholdExceeded) {
         val expectedThreshold =
@@ -142,11 +146,11 @@ private[apiserver] final class RateLimitingInterceptor(
     memoryMxBean.gc()
   }
 
-  private def queueOverloaded(
+  private def queueUnderLimit(
       count: InstrumentedCount,
       limit: Int,
   ): Either[String, Unit] = {
-    metricOverloaded(
+    metricUnderLimit(
       metricDescription = s"${count.name} queue size",
       name = count.prefix,
       value = count.queueSize,
@@ -154,7 +158,7 @@ private[apiserver] final class RateLimitingInterceptor(
     )
   }
 
-  private def metricOverloaded(
+  private def metricUnderLimit(
       metricDescription: String,
       name: MetricName,
       value: Long,
