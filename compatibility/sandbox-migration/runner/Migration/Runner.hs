@@ -100,7 +100,10 @@ main = do
 
 
 supportsSandboxOnX :: SemVer.Version -> Bool
-supportsSandboxOnX v = v == SemVer.initial || v >= (SemVer.initial & SemVer.major .~ 2)
+supportsSandboxOnX v = v >= (SemVer.initial & SemVer.major .~ 2)
+
+supportsSandboxOnXHocon :: SemVer.Version -> Bool
+supportsSandboxOnXHocon v = v == SemVer.initial
 
 supportsAppendOnly :: SemVer.Version -> Bool
 supportsAppendOnly v = v == SemVer.initial
@@ -142,9 +145,11 @@ withSandbox (AppendOnly appendOnly) assistant jdbcUrl f =
     -- The CLI of sandbox on x is not compatible with Sandbox
     -- so rather than using the utilities from the Sandbox module
     -- we spin it up directly.
+    sandboxOnXCommand = if supportsSandboxOnXHocon version then ["run-legacy"] else []
+
     withSandboxOnX portFile f = do
           let args =
-                  [ "run-legacy", "--contract-id-seeding=testing-weak", "--mutable-contract-state-cache"
+                  sandboxOnXCommand ++ [ "--contract-id-seeding=testing-weak", "--mutable-contract-state-cache"
                   , "--ledger-id=" <> ledgerid
                   , "--participant=participant-id=sandbox-participant,port=0,port-file=" <> portFile <> ",server-jdbc-url=" <> T.unpack jdbcUrl <> ",ledgerid=" <> ledgerid
                   ]
