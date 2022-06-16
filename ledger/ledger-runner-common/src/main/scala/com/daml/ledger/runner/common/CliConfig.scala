@@ -6,7 +6,6 @@ package com.daml.ledger.runner.common
 import com.daml.caching
 import com.daml.ledger.api.tls.TlsVersion.TlsVersion
 import com.daml.ledger.api.tls.{SecretsUrl, TlsConfiguration}
-import com.daml.ledger.resources.ResourceOwner
 import com.daml.lf.data.Ref
 import com.daml.lf.engine.EngineConfig
 import com.daml.lf.language.LanguageVersion
@@ -113,16 +112,21 @@ object CliConfig {
         IndexServiceConfig.DefaultMaxTransactionsInMemoryFanOutBufferSize,
     )
 
-  def owner[Extra](
-      name: String,
-      extraOptions: OParser[_, CliConfig[Extra]],
-      defaultExtra: Extra,
-      args: collection.Seq[String],
-  ): ResourceOwner[CliConfig[Extra]] =
-    parse(name, extraOptions, defaultExtra, args)
-      .fold[ResourceOwner[CliConfig[Extra]]](ResourceOwner.failed(new ConfigParseException))(
-        ResourceOwner.successful
-      )
+  private def checkNoEmptyParticipant[Extra](config: CliConfig[Extra]): Either[String, Unit] =
+    if (config.mode == Mode.RunLegacy && config.participants.isEmpty)
+      OParser.builder[CliConfig[Extra]].failure("No --participant provided to run")
+    else
+      OParser.builder[CliConfig[Extra]].success
+
+  private def checkFileCanBeRead[Extra](config: CliConfig[Extra]): Either[String, Unit] = {
+    val fileErrors = config.configFiles.collect {
+      case file if !file.canRead => s"Could not read file ${file.getName}"
+    }
+    if (fileErrors.nonEmpty) {
+      OParser.builder[CliConfig[Extra]].failure(fileErrors.mkString(", "))
+    } else
+      OParser.builder[CliConfig[Extra]].success
+  }
 
   def parse[Extra](
       name: String,
@@ -138,19 +142,15 @@ object CliConfig {
       commandRunLegacy(getEnvVar, extraOptions),
       commandDumpIndexMetadata,
       commandRunHocon,
+      commandConvertConfig(getEnvVar, extraOptions),
+      builder.checkConfig(checkNoEmptyParticipant),
     )
-    val value = OParser.parse[CliConfig[Extra]](
+
+    OParser.parse[CliConfig[Extra]](
       parser,
       args,
       createDefault(defaultExtra),
     )
-    value.flatMap {
-      case config if config.mode == Mode.RunLegacy && config.participants.isEmpty =>
-        System.err.println("No --participant provided to run")
-        None
-      case config =>
-        Some(config)
-    }
   }
 
   private def commandRunHocon[Extra]: OParser[_, CliConfig[Extra]] = {
@@ -183,25 +183,42 @@ object CliConfig {
               .unbounded()
               .action((files, cli) => cli.copy(configFiles = cli.configFiles ++ files)),
           )
-        )
+        ),
+      builder.checkConfig(checkFileCanBeRead),
     )
   }
 
   private def commandRunLegacy[Extra](
       getEnvVar: String => Option[String],
       extraOptions: OParser[_, CliConfig[Extra]],
-  ): OParser[_, CliConfig[Extra]] = {
-    val builder = OParser.builder[CliConfig[Extra]]
-    import builder._
-    OParser.sequence(
-      cmd("run-legacy")
-        .text(
-          "Run Sandbox-On-X in a legacy mode with cli-driven arguments."
-        )
-        .action((_, config) => config.copy(mode = Mode.RunLegacy))
-        .children(OParser.sequence(parser(getEnvVar), extraOptions))
-    )
-  }
+  ): OParser[_, CliConfig[Extra]] =
+    OParser
+      .builder[CliConfig[Extra]]
+      .cmd("run-legacy")
+      .text(
+        "Run Sandbox-On-X in a legacy mode with cli-driven configuration."
+      )
+      .action((_, config) => config.copy(mode = Mode.RunLegacy))
+      .children(legacyCommand(getEnvVar, extraOptions))
+
+  private def commandConvertConfig[Extra](
+      getEnvVar: String => Option[String],
+      extraOptions: OParser[_, CliConfig[Extra]],
+  ): OParser[_, CliConfig[Extra]] =
+    OParser
+      .builder[CliConfig[Extra]]
+      .cmd("convert-config")
+      .text(
+        "Converts configuration provided as legacy CLI options into HOCON file."
+      )
+      .action((_, config) => config.copy(mode = Mode.ConvertConfig))
+      .children(legacyCommand(getEnvVar, extraOptions))
+
+  def legacyCommand[Extra](
+      getEnvVar: String => Option[String],
+      extraOptions: OParser[_, CliConfig[Extra]],
+  ): OParser[_, CliConfig[Extra]] =
+    OParser.sequence(parser(getEnvVar), extraOptions)
 
   private def commandDumpIndexMetadata[Extra]: OParser[_, CliConfig[Extra]] = {
     val builder = OParser.builder[CliConfig[Extra]]

@@ -41,8 +41,6 @@ da_scala_library(
         "//libs-scala/contextualized-logging",
         "//libs-scala/ports",
         "//libs-scala/resources",
-        "//libs-scala/resources-akka",
-        "//libs-scala/resources-grpc",
         "@maven//:com_typesafe_config",
         "@maven//:io_netty_netty_handler",
     ],

@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.daml.ledger.sandbox
 
-import com.daml.ledger.runner.common.{Config, PureConfigReaderWriter}
-
+import com.daml.ledger.runner.common.{CliConfig, CliConfigConverter, Config, PureConfigReaderWriter}
 import pureconfig.ConfigConvert
 import pureconfig.generic.semiauto.deriveConvert
 
@@ -14,4 +13,17 @@ case class SandboxOnXConfig(
 object SandboxOnXConfig {
   import PureConfigReaderWriter._
   implicit val Convert: ConfigConvert[SandboxOnXConfig] = deriveConvert[SandboxOnXConfig]
+
+  def apply(
+      configAdaptor: BridgeConfigAdaptor,
+      originalConfig: CliConfig[BridgeConfig],
+  ): SandboxOnXConfig = {
+    val maxDeduplicationDuration = originalConfig.maxDeduplicationDuration.getOrElse(
+      BridgeConfig.DefaultMaximumDeduplicationDuration
+    )
+    SandboxOnXConfig(
+      ledger = CliConfigConverter.toConfig(configAdaptor, originalConfig),
+      bridge = originalConfig.extra.copy(maxDeduplicationDuration = maxDeduplicationDuration),
+    )
+  }
 }

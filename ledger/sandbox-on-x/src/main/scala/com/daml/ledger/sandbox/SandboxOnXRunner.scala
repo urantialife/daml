@@ -41,9 +41,7 @@ import com.daml.platform.store.{DbSupport, DbType, LfValueTranslationCache}
 import com.daml.platform.usermanagement.{PersistentUserManagementStore, UserManagementConfig}
 import com.daml.ports.Port
 import com.daml.resources.AbstractResourceOwner
-import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
 
-import java.io.File
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 import scala.util.Try
@@ -53,45 +51,12 @@ object SandboxOnXRunner {
   val RunnerName = "sandbox-on-x"
   private val logger = ContextualizedLogger.get(getClass)
 
-  private def mergeConfigs(
-      firstConfig: TypesafeConfig,
-      otherConfigs: Seq[TypesafeConfig],
-  ): TypesafeConfig =
-    otherConfigs.foldLeft(firstConfig)((combined, config) => config.withFallback(combined))
-
-  def toTypesafeConfig(
-      configFiles: Seq[File] = Seq(),
-      configMap: Map[String, String] = Map(),
-  ): TypesafeConfig = {
-    val fileConfigs = configFiles.map(ConfigFactory.parseFile)
-
-    val mergedUserConfigs = fileConfigs match {
-      case Nil => ConfigFactory.empty()
-      case head :: tail =>
-        mergeConfigs(head, tail)
-    }
-
-    ConfigFactory.invalidateCaches()
-    val mergedConfig = mergedUserConfigs.withFallback(ConfigFactory.load())
-
-    val configFromMap = {
-      import scala.jdk.CollectionConverters._
-      ConfigFactory.parseMap(configMap.asJava)
-    }
-
-    mergeConfigs(mergedConfig, Seq(configFromMap))
-  }
-
   def owner(
       configAdaptor: BridgeConfigAdaptor,
       config: Config,
       bridgeConfig: BridgeConfig,
-  ): AbstractResourceOwner[ResourceContext, Port] = {
-    new ResourceOwner[Port] {
-      override def acquire()(implicit context: ResourceContext): Resource[Port] =
-        run(configAdaptor, config, bridgeConfig)
-    }
-  }
+  ): AbstractResourceOwner[ResourceContext, Port] =
+    ResourceOwner.forResource(implicit context => run(configAdaptor, config, bridgeConfig))
 
   def run(
       configAdaptor: BridgeConfigAdaptor,

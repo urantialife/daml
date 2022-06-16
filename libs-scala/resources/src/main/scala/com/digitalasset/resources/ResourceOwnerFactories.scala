@@ -5,7 +5,6 @@ package com.daml.resources
 
 import java.util.Timer
 import java.util.concurrent.{CompletionStage, ExecutorService}
-
 import scala.jdk.FutureConverters.CompletionStageOps
 import scala.concurrent.Future
 import scala.util.Try
@@ -61,4 +60,14 @@ trait ResourceOwnerFactories[Context] {
 
   def forTimer(acquire: () => Timer): AbstractResourceOwner[Context, Timer] =
     new TimerResourceOwner(acquire)
+
+  def forResource[T](
+      acquireResource: Context => Resource[Context, T]
+  ): AbstractResourceOwner[Context, T] = {
+    new AbstractResourceOwner[Context, T] {
+      override def acquire()(implicit context: Context): Resource[Context, T] = {
+        acquireResource.apply(context)
+      }
+    }
+  }
 }

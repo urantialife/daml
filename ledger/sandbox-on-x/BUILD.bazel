@@ -342,10 +342,7 @@ da_scala_library(
     visibility = ["//visibility:public"],
     deps = [
         ":sandbox-on-x",
-        "//ledger/ledger-resources",
         "//ledger/ledger-runner-common",
-        "//libs-scala/contextualized-logging",
-        "//libs-scala/resources",
     ],
 )
 
@@ -360,14 +357,11 @@ da_scala_library(
         "//daml-lf/engine",
         "//ledger/caching",
         "//ledger/ledger-api-common",
-        "//ledger/ledger-resources",
         "//ledger/ledger-runner-common",
         "//ledger/participant-integration-api",
-        "//libs-scala/contextualized-logging",
         "//libs-scala/oracle-testing",
         "//libs-scala/ports",
         "//libs-scala/postgresql-testing",
-        "//libs-scala/resources",
     ],
 )
 

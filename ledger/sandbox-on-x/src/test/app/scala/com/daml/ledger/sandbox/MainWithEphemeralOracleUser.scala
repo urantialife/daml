@@ -3,8 +3,6 @@
 
 package com.daml.ledger.sandbox
 
-import com.daml.ledger.resources.ResourceContext
-import com.daml.resources.ProgramResource
 import com.daml.testing.oracle.OracleAround
 
 object MainWithEphemeralOracleUser {
@@ -14,24 +12,23 @@ object MainWithEphemeralOracleUser {
     System.setProperty("DEFAULT_PARTICIPANT_DATABASE_JDBC_URL", user.jdbcUrl)
     System.setProperty("INDEXER_HIGH_AVAILABILITY_LOCK_ID", (user.lockIdSeed).toString)
     System.setProperty("INDEXER_HIGH_AVAILABILITY_WORKER_LOCK_ID", (user.lockIdSeed + 1).toString)
-    new ProgramResource(
-      owner = CliSandboxOnXRunner.owner(
-        args = args,
-        manipulateConfig = originalConfig =>
-          originalConfig.copy(
-            participants = originalConfig.participants.map(participantConfig =>
-              participantConfig.copy(
-                serverJdbcUrl = user.jdbcUrl,
-                indexerConfig = participantConfig.indexerConfig.copy(
-                  highAvailability = participantConfig.indexerConfig.highAvailability.copy(
-                    indexerLockId = user.lockIdSeed,
-                    indexerWorkerLockId = user.lockIdSeed + 1,
-                  )
-                ),
-              )
+
+    CliSandboxOnXRunner.run(
+      args,
+      manipulateConfig = originalConfig =>
+        originalConfig.copy(
+          participants = originalConfig.participants.map(participantConfig =>
+            participantConfig.copy(
+              serverJdbcUrl = user.jdbcUrl,
+              indexerConfig = participantConfig.indexerConfig.copy(
+                highAvailability = participantConfig.indexerConfig.highAvailability.copy(
+                  indexerLockId = user.lockIdSeed,
+                  indexerWorkerLockId = user.lockIdSeed + 1,
+                )
+              ),
             )
-          ),
-      )
-    ).run(ResourceContext.apply)
+          )
+        ),
+    )
   }
 }
