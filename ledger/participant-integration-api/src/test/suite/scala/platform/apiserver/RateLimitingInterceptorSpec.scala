@@ -26,7 +26,11 @@ import io.grpc._
 import io.grpc.health.v1.health.{HealthCheckRequest, HealthCheckResponse, HealthGrpc}
 import io.grpc.netty.NettyServerBuilder
 import io.grpc.protobuf.services.ProtoReflectionService
-import io.grpc.reflection.v1alpha.{ServerReflectionGrpc, ServerReflectionRequest, ServerReflectionResponse}
+import io.grpc.reflection.v1alpha.{
+  ServerReflectionGrpc,
+  ServerReflectionRequest,
+  ServerReflectionResponse,
+}
 import io.grpc.stub.StreamObserver
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.Eventually
