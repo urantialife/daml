@@ -18,6 +18,7 @@ import com.daml.lf.engine.{
   ResultDone,
   ResultError,
   ResultNeedContract,
+  ResultNeedActiveCoid,
   ResultNeedKey,
   ResultNeedPackage,
   Error => DamlLfError,
@@ -183,6 +184,23 @@ private[apiserver] final class StoreBackedCommandExecutor(
                 Timed.trackedValue(
                   metrics.daml.execution.engineRunning,
                   trackSyncExecution(interpretationTimeNanos)(resume(instance)),
+                )
+              )
+            }
+        case ResultNeedActiveCoid(acoid, resume) =>
+          val start = System.nanoTime
+          Timed
+            .future(
+              metrics.daml.execution.lookupActiveContract,
+              contractStore.lookupActiveContract(readers, acoid),
+            )
+            .flatMap { instance =>
+              lookupActiveContractTime.addAndGet(System.nanoTime() - start)
+              lookupActiveContractCount.incrementAndGet()
+              resolveStep(
+                Timed.trackedValue(
+                  metrics.daml.execution.engineRunning,
+                  trackSyncExecution(interpretationTimeNanos)(resume(instance.nonEmpty)),
                 )
               )
             }

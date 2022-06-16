@@ -172,6 +172,9 @@ object ScenarioRunner {
   // The interface we need from a ledger during submission. We allow abstracting over this so we can play
   // tricks like caching all responses in some benchmarks.
   abstract class LedgerApi[R] {
+    def isActive(
+        coid: ContractId
+    ): Boolean
     def lookupContract(
         coid: ContractId,
         actAs: Set[Party],
@@ -197,6 +200,10 @@ object ScenarioRunner {
 
   case class ScenarioLedgerApi(ledger: ScenarioLedger)
       extends LedgerApi[ScenarioLedger.CommitResult] {
+
+    override def isActive(
+        acoid: ContractId
+    ): Boolean = ledger.ledgerData.activeContracts.contains(acoid)
 
     override def lookupContract(
         acoid: ContractId,
@@ -436,8 +443,15 @@ object ScenarioRunner {
                 case Right(_) => go()
               }
             case Some(coinst) => {
-              callback(coinst)
-              go()
+              if (!ledger.isActive(coid)) {
+                SubmissionError(
+                  Error.DisclosedContractNotActive(coid, coinst.unversioned.template),
+                  enrich(onLedger.incompleteTransaction),
+                )
+              } else {
+                callback(coinst)
+                go()
+              }
             }
           }
         case SResultNeedKey(keyWithMaintainers, committers, callback) =>
@@ -455,8 +469,15 @@ object ScenarioRunner {
               }
             // TODO (drsk) validate key hash. https://github.com/digital-asset/daml/issues/13897
             case Some(coid) => {
-              discard(callback(Some(coid)))
-              go()
+              if (!ledger.isActive(coid)) {
+                SubmissionError(
+                  Error.DisclosedContractNotActive(coid, keyWithMaintainers.globalKey.templateId),
+                  enrich(onLedger.incompleteTransaction),
+                )
+              } else {
+                discard(callback(Some(coid)))
+                go()
+              }
             }
 
           }

@@ -40,6 +40,11 @@ object Error {
       consumedBy: EventId,
   ) extends Error
 
+  final case class DisclosedContractNotActive(
+      coid: ContractId,
+      templateId: Identifier,
+  ) extends Error
+
   /** A fetch or exercise was being made against a contract that has not
     * been disclosed to 'committer'.
     */

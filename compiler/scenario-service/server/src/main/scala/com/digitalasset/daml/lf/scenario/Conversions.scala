@@ -125,6 +125,12 @@ final class Conversions(
                     .setConsumedBy(proto.NodeId.newBuilder.setId(consumedBy.toString).build)
                     .build
                 )
+              case DisclosedContractNotActive(coid, tid) =>
+                builder.setUpdateDisclosedContractNotActive(
+                  proto.ScenarioError.DisclosedContractNotActive.newBuilder
+                    .setContractRef(mkContractRef(coid, tid))
+                    .build
+                )
               case LocalContractKeyNotVisible(coid, gk, actAs, readAs, stakeholders) =>
                 builder.setScenarioContractKeyNotVisible(
                   proto.ScenarioError.ContractKeyNotVisible.newBuilder
@@ -234,6 +240,12 @@ final class Conversions(
           proto.ScenarioError.ContractNotActive.newBuilder
             .setContractRef(mkContractRef(coid, tid))
             .setConsumedBy(convertEventId(consumedBy))
+            .build
+        )
+      case Error.DisclosedContractNotActive(coid, tid) =>
+        builder.setScenarioDisclosedContractNotActive(
+          proto.ScenarioError.DisclosedContractNotActive.newBuilder
+            .setContractRef(mkContractRef(coid, tid))
             .build
         )
 

@@ -45,6 +45,11 @@ object Error {
       consumedBy: NodeId,
   ) extends Error
 
+  final case class DisclosedContractNotActive(
+      coid: ContractId,
+      templateId: TypeConName,
+  ) extends Error
+
   final case class LocalContractKeyNotVisible(
       coid: ContractId,
       key: GlobalKey,

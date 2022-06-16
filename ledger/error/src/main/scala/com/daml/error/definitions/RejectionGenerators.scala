@@ -70,6 +70,9 @@ object RejectionGenerators {
         case e: LfInterpretationError.ContractNotActive =>
           LedgerApiErrors.CommandExecution.Interpreter.ContractNotActive
             .Reject(renderedMessage, e)
+        case e: LfInterpretationError.DisclosedContractNotActive =>
+          LedgerApiErrors.CommandExecution.Interpreter.DisclosedContractNotActive
+            .Reject(renderedMessage, e)
         case _: LfInterpretationError.LocalContractKeyNotVisible =>
           LedgerApiErrors.CommandExecution.Interpreter.GenericInterpretationError
             .Error(renderedMessage)

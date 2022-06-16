@@ -25,6 +25,11 @@ private[lf] object Pretty {
         text("Scenario failed due to a fetch of a consumed contract") & prettyContractId(coid) &
           char('(') + (prettyIdentifier(tid)) + text(").") /
           text("The contract had been consumed in transaction") & prettyEventId(consumedBy)
+      case Error.DisclosedContractNotActive(coid, tid) =>
+        text("Scenario failed due to a fetch of a consumed disclosed contract") & prettyContractId(
+          coid
+        ) &
+          char('(') + (prettyIdentifier(tid)) + text(").")
       case Error.ContractNotVisible(coid, tid, actAs, readAs, observers) =>
         text("Scenario failed due to the failure to fetch the contract") & prettyContractId(coid) &
           char('(') + (prettyIdentifier(tid)) + text(").") /

@@ -23,6 +23,8 @@ sealed trait Result[+A] extends Product with Serializable {
     case ResultError(err) => ResultError(err)
     case ResultNeedContract(acoid, resume) =>
       ResultNeedContract(acoid, mbContract => resume(mbContract).map(f))
+    case ResultNeedActiveCoid(acoid, resume) =>
+      ResultNeedActiveCoid(acoid, isActive => resume(isActive).map(f))
     case ResultNeedPackage(pkgId, resume) =>
       ResultNeedPackage(pkgId, mbPkg => resume(mbPkg).map(f))
     case ResultNeedKey(gk, resume) =>
@@ -34,6 +36,8 @@ sealed trait Result[+A] extends Product with Serializable {
     case ResultError(err) => ResultError(err)
     case ResultNeedContract(acoid, resume) =>
       ResultNeedContract(acoid, mbContract => resume(mbContract).flatMap(f))
+    case ResultNeedActiveCoid(acoid, resume) =>
+      ResultNeedActiveCoid(acoid, isActive => resume(isActive).flatMap(f))
     case ResultNeedPackage(pkgId, resume) =>
       ResultNeedPackage(pkgId, mbPkg => resume(mbPkg).flatMap(f))
     case ResultNeedKey(gk, resume) =>
@@ -51,6 +55,7 @@ sealed trait Result[+A] extends Product with Serializable {
         case ResultDone(x) => Right(x)
         case ResultError(err) => Left(err)
         case ResultNeedContract(acoid, resume) => go(resume(pcs(acoid)))
+        case ResultNeedActiveCoid(acoid, resume) => go(resume(pcs(acoid).nonEmpty))
         case ResultNeedPackage(pkgId, resume) => go(resume(packages(pkgId)))
         case ResultNeedKey(key, resume) => go(resume(keys(key)))
       }
@@ -87,6 +92,11 @@ object ResultError {
 final case class ResultNeedContract[A](
     acoid: ContractId,
     resume: Option[VersionedContractInstance] => Result[A],
+) extends Result[A]
+
+final case class ResultNeedActiveCoid[A](
+    acoid: ContractId,
+    resume: Boolean => Result[A],
 ) extends Result[A]
 
 /** Intermediate result indicating that a [[Package]] is required to complete the computation.
@@ -158,6 +168,16 @@ object Result {
                 acoid,
                 coinst =>
                   resume(coinst).flatMap(x =>
+                    Result
+                      .sequence(results_)
+                      .map(otherResults => (okResults :+ x) :++ otherResults)
+                  ),
+              )
+            case ResultNeedActiveCoid(acoid, resume) =>
+              ResultNeedActiveCoid(
+                acoid,
+                isActive =>
+                  resume(isActive).flatMap(x =>
                     Result
                       .sequence(results_)
                       .map(otherResults => (okResults :+ x) :++ otherResults)

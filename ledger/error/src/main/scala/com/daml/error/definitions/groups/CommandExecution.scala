@@ -178,6 +178,31 @@ object CommandExecution extends LedgerApiErrors.CommandExecutionErrorGroup {
 
     }
 
+    @Explanation(
+      """This error occurs if an exercise or fetch happens on a consumed disclosed contract."""
+    )
+    @Resolution("This error indicates an application error.")
+    object DisclosedContractNotActive
+        extends ErrorCode(
+          id = "DISCLOSED_CONTRACT_NOT_ACTIVE",
+          ErrorCategory.InvalidGivenCurrentSystemStateResourceMissing,
+        ) {
+
+      case class Reject(
+          override val cause: String,
+          err: LfInterpretationError.DisclosedContractNotActive,
+      )(implicit
+          loggingContext: ContextualizedErrorLogger
+      ) extends DamlErrorWithDefiniteAnswer(
+            cause = cause
+          ) {
+        override def resources: Seq[(ErrorResource, String)] = Seq(
+          (ErrorResource.ContractId, err.coid.coid)
+        )
+      }
+
+    }
+
     @Explanation("Errors raised in lookups during the command interpretation phase.")
     object LookupErrors extends ErrorGroup {
       @Explanation(

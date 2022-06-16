@@ -180,6 +180,10 @@ message ScenarioError {
     NodeId consumed_by = 2;
   }
 
+  message DisclosedContractNotActive {
+    ContractRef contract_ref = 1;
+  }
+
   message ContractNotVisible {
     ContractRef contract_ref = 1;
     repeated Party actAs = 2;
@@ -305,6 +309,9 @@ message ScenarioError {
     ContractDoesNotImplementInterface contract_does_not_implement_interface = 35;
     ContractDoesNotImplementRequiringInterface contract_does_not_implement_requiring_interface
     = 36;
+
+    DisclosedContractNotActive scenario_disclosed_contract_not_active = 37;
+    DisclosedContractNotActive update_disclosed_contract_not_active = 38;
   }
 }
 

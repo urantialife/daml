@@ -399,7 +399,22 @@ class Engine(val config: EngineConfig = Engine.StableConfig) {
                 contractId,
                 continueWithContract,
               )
-            case Some(coinst) => return continueWithContract(coinst)
+            case Some(coinst) =>
+              return ResultNeedActiveCoid(
+                contractId,
+                isActive =>
+                  isActive match {
+                    case true => continueWithContract(coinst)
+                    case false =>
+                      ResultError(
+                        Error.Interpretation.DamlException(
+                          interpretation.Error
+                            .DisclosedContractNotActive(contractId, coinst.unversioned.template)
+                        ),
+                        Some(s"Disclosed contract with ${contractId} is not active."),
+                      )
+                  },
+              )
           }
         }
 

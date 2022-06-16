@@ -52,6 +52,11 @@ private[lf] object Pretty {
         text("Update failed due to fetch of an inactive contract") & prettyContractId(coid) &
           char('(') + (prettyTypeConName(tid)) + text(").") /
           text(s"The contract had been consumed in sub-transaction #$consumedBy:")
+      case DisclosedContractNotActive(coid, tid) =>
+        text("Update failed due to fetch of an inactive disclosed contract") & prettyContractId(
+          coid
+        ) &
+          char('(') + (prettyTypeConName(tid)) + text(").")
       case ContractKeyNotFound(gk) =>
         text(
           "Update failed due to fetch-by-key or exercise-by-key which did not find a contract with key"

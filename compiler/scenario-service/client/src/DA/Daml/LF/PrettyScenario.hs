@@ -283,6 +283,22 @@ prettyScenarioErrorError (Just err) =  do
                   (prettyContractRef world)
                   scenarioError_ContractNotActiveContractRef
         ]
+    ScenarioErrorErrorUpdateDisclosedContractNotActive ScenarioError_DisclosedContractNotActive{..} ->
+      pure $ vcat
+        [ "Attempt to exercise a disclosed contract that was not active."
+        , "Contract:"
+            <-> prettyMay "<missing contract>"
+                  (prettyContractRef world)
+                  scenarioError_DisclosedContractNotActiveContractRef
+        ]
+    ScenarioErrorErrorScenarioDisclosedContractNotActive ScenarioError_DisclosedContractNotActive{..} ->
+      pure $ vcat
+        [ "Attempt to exercise a disclosed contract that was not active."
+        , "Contract:"
+            <-> prettyMay "<missing contract>"
+                  (prettyContractRef world)
+                  scenarioError_DisclosedContractNotActiveContractRef
+        ]
     ScenarioErrorErrorCreateEmptyContractKeyMaintainers ScenarioError_CreateEmptyContractKeyMaintainers{..} ->
       pure $ vcat
         [ "Attempt to create a contract key with an empty set of maintainers:"
