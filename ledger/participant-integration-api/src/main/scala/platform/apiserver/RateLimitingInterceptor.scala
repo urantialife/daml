@@ -5,10 +5,11 @@ package com.daml.platform.apiserver
 
 import com.codahale.metrics.MetricRegistry
 import com.daml.metrics.{MetricName, Metrics}
-import com.daml.platform.apiserver.RateLimitingInterceptor.{OnCloseServerCall, doNonLimit}
+import com.daml.platform.apiserver.RateLimitingInterceptor.{OnCloseCallListener, doNonLimit}
 import com.daml.platform.apiserver.TenuredMemoryPool.findTenuredMemoryPool
 import com.daml.platform.apiserver.configuration.RateLimitingConfig
 import com.daml.platform.configuration.ServerRole
+import io.grpc.ForwardingServerCallListener.SimpleForwardingServerCallListener
 import io.grpc.MethodDescriptor.MethodType
 import io.grpc.Status.Code
 import io.grpc._
@@ -16,7 +17,7 @@ import io.grpc.protobuf.StatusProto
 import org.slf4j.LoggerFactory
 
 import java.lang.management._
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import javax.management.ObjectName
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters.ListHasAsScala
@@ -73,10 +74,9 @@ private[apiserver] final class RateLimitingInterceptor(
         new ServerCall.Listener[ReqT]() {}
 
       case None if call.getMethodDescriptor.getType == MethodType.SERVER_STREAMING =>
-        val listener: ServerCall.Listener[ReqT] = next.startCall(
-          new OnCloseServerCall(call, () => activeStreamsCounter.dec()),
-          headers,
-        )
+        val delegate = next.startCall(call, headers)
+        val listener =
+          new OnCloseCallListener(delegate, runOnceOnTermination = () => activeStreamsCounter.dec())
         activeStreamsCounter.inc() // Only do after call above has returned
         listener
 
@@ -211,21 +211,29 @@ object RateLimitingInterceptor {
     "grpc.health.v1.Health/Watch",
   )
 
-  private class OnCloseServerCall[ReqT, RespT](
-      val delegate: ServerCall[ReqT, RespT],
-      safeOnClose: () => Unit,
-  ) extends ForwardingServerCall[ReqT, RespT] {
+  private class OnCloseCallListener[RespT](
+      delegate: ServerCall.Listener[RespT],
+      runOnceOnTermination: () => Unit,
+  ) extends SimpleForwardingServerCallListener[RespT](delegate) {
     private val logger = LoggerFactory.getLogger(getClass)
+    private val onTerminationCalled = new AtomicBoolean()
 
-    override def close(status: Status, trailers: Metadata): Unit = {
-      try {
-        delegate.close(status, trailers)
-      } finally {
-        Try(safeOnClose()).failed.foreach(logger.warn(s"Exception calling onClose method", _))
+    private def runOnClose(): Unit = {
+      if (onTerminationCalled.compareAndSet(false, true)) {
+        Try(runOnceOnTermination()).failed
+          .foreach(logger.warn(s"Exception calling onClose method", _))
       }
     }
 
-    override def getMethodDescriptor: MethodDescriptor[ReqT, RespT] = delegate.getMethodDescriptor
+    override def onCancel(): Unit = {
+      runOnClose()
+      super.onCancel()
+    }
+    override def onComplete(): Unit = {
+      runOnClose()
+      super.onComplete()
+    }
+
   }
 
 }

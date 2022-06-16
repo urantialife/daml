@@ -39,6 +39,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Second, Span}
 import org.slf4j.LoggerFactory
 
+import java.io.IOException
 import java.lang.management._
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
@@ -290,6 +291,24 @@ final class RateLimitingInterceptorSpec
     }
   }
 
+  it should "maintain stream count for streams cancellations" in {
+
+    val metrics = new Metrics(new MetricRegistry)
+
+    val limitStreamConfig = RateLimitingConfig.Default.copy(maxStreams = 2)
+
+    val waitService = new WaitService()
+    withChannel(metrics, waitService, limitStreamConfig).use { channel: Channel =>
+      for {
+        fStatus1 <- streamHello(channel, cancel = true)
+        status1 <- fStatus1
+      } yield {
+        status1.getCode shouldBe Code.CANCELLED
+        metrics.daml.lapi.streams.active.getCount shouldBe 0
+      }
+    }
+  }
+
   it should "should reset limit if a change of max memory is detected" in {
 
     val initMemory = 100000L
@@ -475,7 +494,7 @@ object RateLimitingInterceptorSpec extends MockitoSugar {
     status.future
   }
 
-  def streamHello(channel: Channel): Future[Future[Status]] = {
+  def streamHello(channel: Channel, cancel: Boolean = false): Future[Future[Status]] = {
 
     val init = Promise[Future[Status]]()
     val status = Promise[Status]()
@@ -499,6 +518,8 @@ object RateLimitingInterceptorSpec extends MockitoSugar {
     clientCall.sendMessage(HelloRequest(2))
     clientCall.halfClose()
     clientCall.request(2) // Request both messages
+
+    if (cancel) clientCall.cancel("Test cancel", new IOException("network down"))
 
     init.future
   }
