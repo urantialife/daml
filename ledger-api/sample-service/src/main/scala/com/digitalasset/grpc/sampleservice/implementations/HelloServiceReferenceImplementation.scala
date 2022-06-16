@@ -26,6 +26,7 @@ class HelloServiceReferenceImplementation
       request: HelloRequest,
       responseObserver: StreamObserver[HelloResponse],
   ): Unit = {
+
     validateRequest(request)
     for (i <- 1.to(request.reqInt)) responseObserver.onNext(HelloResponse(i))
     responseObserver.onCompleted()

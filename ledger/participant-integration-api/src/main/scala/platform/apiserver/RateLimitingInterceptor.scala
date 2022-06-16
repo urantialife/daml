@@ -9,6 +9,7 @@ import com.daml.platform.apiserver.RateLimitingInterceptor.{OnCloseServerCall, d
 import com.daml.platform.apiserver.TenuredMemoryPool.findTenuredMemoryPool
 import com.daml.platform.apiserver.configuration.RateLimitingConfig
 import com.daml.platform.configuration.ServerRole
+import io.grpc.MethodDescriptor.MethodType
 import io.grpc.Status.Code
 import io.grpc._
 import io.grpc.protobuf.StatusProto
@@ -71,13 +72,17 @@ private[apiserver] final class RateLimitingInterceptor(
 
         new ServerCall.Listener[ReqT]() {}
 
-      case None =>
+      case None if call.getMethodDescriptor.getType == MethodType.SERVER_STREAMING =>
         val listener: ServerCall.Listener[ReqT] = next.startCall(
           new OnCloseServerCall(call, () => activeStreamsCounter.dec()),
           headers,
         )
         activeStreamsCounter.inc() // Only do after call above has returned
         listener
+
+      case None =>
+        next.startCall(call, headers)
+
     }
 
   }

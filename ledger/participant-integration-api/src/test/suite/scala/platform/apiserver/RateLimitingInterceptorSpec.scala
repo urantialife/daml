@@ -6,6 +6,7 @@ package com.daml.platform.apiserver
 import akka.actor.ActorSystem
 import com.codahale.metrics.MetricRegistry
 import com.daml.grpc.adapter.utils.implementations.HelloServiceAkkaImplementation
+import com.daml.grpc.sampleservice.implementations.HelloServiceReferenceImplementation
 import com.daml.ledger.api.health.HealthChecks.ComponentName
 import com.daml.ledger.api.health.{HealthChecks, ReportsHealth}
 import com.daml.ledger.api.testing.utils.AkkaBeforeAndAfterAll
@@ -20,6 +21,7 @@ import com.daml.platform.hello.{HelloRequest, HelloResponse, HelloServiceGrpc}
 import com.daml.platform.server.api.services.grpc.GrpcHealthService
 import com.daml.ports.Port
 import com.daml.resources.akka.ActorSystemResourceOwner
+import com.daml.scalautil.Statement.discard
 import com.google.protobuf.ByteString
 import io.grpc.Status.Code
 import io.grpc._
@@ -37,10 +39,10 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Second, Span}
-import org.slf4j.LoggerFactory
 
 import java.lang.management._
 import java.net.{InetAddress, InetSocketAddress}
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Future, Promise}
 
@@ -58,8 +60,6 @@ final class RateLimitingInterceptorSpec
     PatienceConfig(timeout = scaled(Span(1, Second)))
 
   private val config = RateLimitingConfig(100, 10, 75, 100 * RateLimitingConfig.Megabyte, 100)
-
-  private val logger = LoggerFactory.getLogger(getClass)
 
   behavior of "RateLimitingInterceptor"
 
@@ -229,70 +229,65 @@ final class RateLimitingInterceptorSpec
 
     val limitStreamConfig = RateLimitingConfig.Default.copy(maxStreams = 2)
 
-    type CloseStream = () => Future[Status]
-
-    def stream(channel: Channel, id: String): Future[CloseStream] = {
-
-      // A large size is needed to avoid the streams closing on the server side before the limit is reached
-      val size = 10000
-
-      val init = Promise[CloseStream]()
-      val status = Promise[Status]()
-      val clientCall =
-        channel.newCall(HelloServiceGrpc.METHOD_SERVER_STREAMING, CallOptions.DEFAULT)
-
-      val stream: CloseStream = () => {
-        clientCall.request(size - 1) // Request remaining messages
-        status.future
-      }
-
-      clientCall.start(
-        new ClientCall.Listener[HelloResponse] {
-          override def onClose(grpcStatus: Status, trailers: Metadata): Unit = {
-            logger.info(s"onClose($id, $grpcStatus, $trailers)")
-            if (!init.isCompleted) init.success(stream)
-            status.success(grpcStatus)
-          }
-          override def onMessage(message: HelloResponse): Unit = {
-            if (Set(1, size).contains(message.respInt)) logger.info(s"onMessage($message)")
-            if (message.respInt == 1) init.success(stream)
-          }
-        },
-        new Metadata(),
-      )
-
-      // When the handshake is single message -> stream then onReady is not applicable
-      clientCall.sendMessage(HelloRequest(size, ByteString.copyFromUtf8(id)))
-      clientCall.halfClose()
-
-      clientCall.request(1) // Request first message
-
-      init.future
-    }
-
-    withChannel(metrics, new HelloServiceAkkaImplementation, limitStreamConfig).use {
-      channel: Channel =>
-        {
-          for {
-            closeStream1 <- stream(channel, "s1") // Ok
-            closeStream2 <- stream(channel, "s2") // Ok
-            activeStreams = metrics.daml.lapi.streams.active.getCount
-            closeStream3 <- stream(channel, "s3") // Limited
-            status1 <- closeStream1()
-            closeStream4 <- stream(channel, "s4") // Ok
-            status2 <- closeStream2()
-            status3 <- closeStream3() // Already closed
-            status4 <- closeStream4()
-          } yield {
-            activeStreams shouldBe limitStreamConfig.maxStreams
-            status1.getCode shouldBe Code.OK
-            status2.getCode shouldBe Code.OK
-            metrics.daml.lapi.streams.active.getCount shouldBe 0
-            status3.getCode shouldBe Code.ABORTED
-            status3.getDescription should include(metrics.daml.lapi.streams.activeName)
-            status4.getCode shouldBe Code.OK
-          }
+    val waitService = new WaitService()
+    withChannel(metrics, waitService, limitStreamConfig).use { channel: Channel =>
+      {
+        for {
+          fStatus1 <- streamHello(channel) // Ok
+          fStatus2 <- streamHello(channel) // Ok
+          activeStreams = metrics.daml.lapi.streams.active.getCount
+          fStatus3 <- streamHello(channel) // Limited
+          status3 <- fStatus3 // Closed as part of limiting
+          _ = waitService.completeStream()
+          status1 <- fStatus1
+          fStatus4 <- streamHello(channel) // Ok
+          _ = waitService.completeStream()
+          status2 <- fStatus2
+          _ = waitService.completeStream()
+          status4 <- fStatus4
+        } yield {
+          activeStreams shouldBe limitStreamConfig.maxStreams
+          status1.getCode shouldBe Code.OK
+          status2.getCode shouldBe Code.OK
+          metrics.daml.lapi.streams.active.getCount shouldBe 0
+          status3.getCode shouldBe Code.ABORTED
+          status3.getDescription should include(metrics.daml.lapi.streams.activeName)
+          status4.getCode shouldBe Code.OK
         }
+      }
+    }
+  }
+
+  it should "exclude non-stream traffic from stream counts" in {
+
+    val metrics = new Metrics(new MetricRegistry)
+
+    val limitStreamConfig = RateLimitingConfig.Default.copy(maxStreams = 2)
+
+    val waitService = new WaitService()
+    withChannel(metrics, waitService, limitStreamConfig).use { channel: Channel =>
+      {
+        for {
+
+          fStatus1 <- streamHello(channel)
+          fHelloStatus = singleHello(channel)
+          fStatus2 <- streamHello(channel)
+
+          _ = waitService.completeStream()
+          _ = waitService.completeSingle()
+          _ = waitService.completeStream()
+
+          status1 <- fStatus1
+          helloStatus <- fHelloStatus
+          status2 <- fStatus2
+
+        } yield {
+          status1.getCode shouldBe Code.OK
+          helloStatus.getCode shouldBe Code.OK
+          status2.getCode shouldBe Code.OK
+          metrics.daml.lapi.streams.active.getCount shouldBe 0
+        }
+      }
     }
   }
 
@@ -418,5 +413,99 @@ object RateLimitingInterceptorSpec extends MockitoSugar {
           server
         })(server => Future(server.shutdown().awaitTermination()))
     }
+
+  /** By default [[HelloServiceReferenceImplementation]] will return all elements and complete the stream on
+    * the server side on every request.  For stream based rate limiting we want to explicitly hold open
+    * the stream such that we know for sure how many streams are open.
+    */
+  class WaitService extends HelloServiceReferenceImplementation {
+
+    private val observers = new LinkedBlockingQueue[StreamObserver[HelloResponse]]()
+    private val requests = new LinkedBlockingQueue[Promise[HelloResponse]]()
+
+    def completeStream(): Unit = {
+      val responseObserver = observers.remove()
+      responseObserver.onNext(HelloResponse(0, ByteString.copyFromUtf8("last")))
+      responseObserver.onCompleted()
+    }
+
+    def completeSingle(): Unit = {
+      println("Removing request")
+      discard(
+        requests
+          .poll(10, TimeUnit.SECONDS)
+          .success(HelloResponse(0, ByteString.copyFromUtf8("only")))
+      )
+    }
+
+    override def serverStreaming(
+        request: HelloRequest,
+        responseObserver: StreamObserver[HelloResponse],
+    ): Unit = {
+      responseObserver.onNext(HelloResponse(0, ByteString.copyFromUtf8("first")))
+      observers.put(responseObserver)
+    }
+
+    override def single(request: HelloRequest): Future[HelloResponse] = {
+      val promise = Promise[HelloResponse]()
+      println("Adding request")
+      requests.put(promise)
+      promise.future
+    }
+
+  }
+
+  def singleHello(channel: Channel): Future[Status] = {
+
+    val status = Promise[Status]()
+    val clientCall = channel.newCall(HelloServiceGrpc.METHOD_SINGLE, CallOptions.DEFAULT)
+
+    clientCall.start(
+      new ClientCall.Listener[HelloResponse] {
+        override def onClose(grpcStatus: Status, trailers: Metadata): Unit = {
+          println(s"Single closed with $grpcStatus")
+          status.success(grpcStatus)
+        }
+        override def onMessage(message: HelloResponse): Unit = {
+          println(s"Got single message: $message")
+        }
+      },
+      new Metadata(),
+    )
+
+    clientCall.sendMessage(HelloRequest(1))
+    clientCall.halfClose()
+    clientCall.request(1)
+
+    status.future
+  }
+
+  def streamHello(channel: Channel): Future[Future[Status]] = {
+
+    val init = Promise[Future[Status]]()
+    val status = Promise[Status]()
+    val clientCall =
+      channel.newCall(HelloServiceGrpc.METHOD_SERVER_STREAMING, CallOptions.DEFAULT)
+
+    clientCall.start(
+      new ClientCall.Listener[HelloResponse] {
+        override def onClose(grpcStatus: Status, trailers: Metadata): Unit = {
+          if (!init.isCompleted) init.success(status.future)
+          status.success(grpcStatus)
+        }
+        override def onMessage(message: HelloResponse): Unit = {
+          if (!init.isCompleted) init.success(status.future)
+        }
+      },
+      new Metadata(),
+    )
+
+    // When the handshake is single message -> streamHello then onReady is not applicable
+    clientCall.sendMessage(HelloRequest(2))
+    clientCall.halfClose()
+    clientCall.request(2) // Request both messages
+
+    init.future
+  }
 
 }
