@@ -3,7 +3,6 @@
 
 package com.daml.platform.apiserver
 
-import akka.actor.ActorSystem
 import com.codahale.metrics.MetricRegistry
 import com.daml.grpc.adapter.utils.implementations.HelloServiceAkkaImplementation
 import com.daml.grpc.sampleservice.implementations.HelloServiceReferenceImplementation
@@ -20,7 +19,6 @@ import com.daml.platform.configuration.ServerRole
 import com.daml.platform.hello.{HelloRequest, HelloResponse, HelloServiceGrpc}
 import com.daml.platform.server.api.services.grpc.GrpcHealthService
 import com.daml.ports.Port
-import com.daml.resources.akka.ActorSystemResourceOwner
 import com.daml.scalautil.Statement.discard
 import com.google.protobuf.ByteString
 import io.grpc.Status.Code
@@ -28,17 +26,14 @@ import io.grpc._
 import io.grpc.health.v1.health.{HealthCheckRequest, HealthCheckResponse, HealthGrpc}
 import io.grpc.netty.NettyServerBuilder
 import io.grpc.protobuf.services.ProtoReflectionService
-import io.grpc.reflection.v1alpha.{
-  ServerReflectionGrpc,
-  ServerReflectionRequest,
-  ServerReflectionResponse,
-}
+import io.grpc.reflection.v1alpha.{ServerReflectionGrpc, ServerReflectionRequest, ServerReflectionResponse}
 import io.grpc.stub.StreamObserver
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Second, Span}
+import org.slf4j.LoggerFactory
 
 import java.lang.management._
 import java.net.{InetAddress, InetSocketAddress}
@@ -368,10 +363,8 @@ final class RateLimitingInterceptorSpec
 
 object RateLimitingInterceptorSpec extends MockitoSugar {
 
-  val healthChecks = new HealthChecks(Map.empty[ComponentName, ReportsHealth])
-  val systemOwner: ResourceOwner[ActorSystem] = new ActorSystemResourceOwner(() =>
-    ActorSystem("RateLimitingInterceptorSpec")
-  )
+  private val logger = LoggerFactory.getLogger(getClass)
+  private val healthChecks = new HealthChecks(Map.empty[ComponentName, ReportsHealth])
 
   // For tests that do not involve memory
   def underLimitMemoryPoolMXBean(): MemoryPoolMXBean = {
@@ -430,7 +423,6 @@ object RateLimitingInterceptorSpec extends MockitoSugar {
     }
 
     def completeSingle(): Unit = {
-      println("Removing request")
       discard(
         requests
           .poll(10, TimeUnit.SECONDS)
@@ -448,7 +440,6 @@ object RateLimitingInterceptorSpec extends MockitoSugar {
 
     override def single(request: HelloRequest): Future[HelloResponse] = {
       val promise = Promise[HelloResponse]()
-      println("Adding request")
       requests.put(promise)
       promise.future
     }
@@ -463,11 +454,11 @@ object RateLimitingInterceptorSpec extends MockitoSugar {
     clientCall.start(
       new ClientCall.Listener[HelloResponse] {
         override def onClose(grpcStatus: Status, trailers: Metadata): Unit = {
-          println(s"Single closed with $grpcStatus")
+          logger.debug(s"Single closed with $grpcStatus")
           status.success(grpcStatus)
         }
         override def onMessage(message: HelloResponse): Unit = {
-          println(s"Got single message: $message")
+          logger.debug(s"Got single message: $message")
         }
       },
       new Metadata(),
