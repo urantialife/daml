@@ -40,6 +40,6 @@ case object RateLimitingConfig {
     maxApiServicesIndexDbQueueSize = 1000,
     maxUsedHeapSpacePercentage = 85,
     minFreeHeapSpaceBytes = 300 * Megabyte,
-    maxStreams = 50,
+    maxStreams = 1000,
   )
 }
