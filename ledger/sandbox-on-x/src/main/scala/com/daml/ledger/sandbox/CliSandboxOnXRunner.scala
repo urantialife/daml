@@ -7,6 +7,7 @@ import com.daml.ledger.resources.{Resource, ResourceContext, ResourceOwner}
 import com.daml.ledger.runner.common._
 import com.daml.logging.ContextualizedLogger
 import com.daml.resources.ProgramResource
+import com.typesafe.config.ConfigFactory
 
 object CliSandboxOnXRunner {
   private val logger = ContextualizedLogger.get(getClass)
@@ -31,6 +32,7 @@ object CliSandboxOnXRunner {
     config.mode match {
       case Mode.Run =>
         val configAdaptor: BridgeConfigAdaptor = new BridgeConfigAdaptor
+        ConfigFactory.invalidateCaches()
         val sandboxOnXConfig: Either[String, SandboxOnXConfig] =
           ConfigLoader.loadConfig[SandboxOnXConfig](
             ConfigLoader.toTypesafeConfig(

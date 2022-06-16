@@ -50,6 +50,7 @@ da_scala_test_suite(
     name = "ledger-runner-common-tests",
     size = "small",
     srcs = glob(["src/test/scala/**/*.scala"]),
+    resources = glob(["src/test/resources/**/*"]),
     scala_deps = [
         "@maven//:com_github_scopt_scopt",
         "@maven//:org_scalatest_scalatest_core",
@@ -61,6 +62,7 @@ da_scala_test_suite(
         "//daml-lf/data",
         "//ledger/ledger-api-common",
         "//ledger/participant-integration-api",
+        "@maven//:com_typesafe_config",
         "@maven//:io_netty_netty_handler",
         "@maven//:org_scalatest_scalatest_compatible",
     ],

@@ -26,6 +26,7 @@ trait ConfigLoader {
   def toTypesafeConfig(
       configFiles: Seq[File] = Seq(),
       configMap: Map[String, String] = Map(),
+      fallback: TypesafeConfig = ConfigFactory.load(),
   ): TypesafeConfig = {
     val fileConfigs = configFiles.map(ConfigFactory.parseFile)
 
@@ -36,7 +37,7 @@ trait ConfigLoader {
     }
 
     ConfigFactory.invalidateCaches()
-    val mergedConfig = mergedUserConfigs.withFallback(ConfigFactory.load())
+    val mergedConfig = mergedUserConfigs.withFallback(fallback)
 
     val configFromMap = {
       import scala.jdk.CollectionConverters._
